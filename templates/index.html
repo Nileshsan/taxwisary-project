@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Advisory System - PBS TaxS</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+    <style>
+        /* General Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+        body {
+            background: linear-gradient(to right, rgb(224, 240, 199), #E5E5BE);
+            color: #333;
+            line-height: 1.6;
+        }
+        a { text-decoration: none; }
+        /* Navbar */
+        .navbar {
+            background-color: #222;
+            color: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+        }
+        .nav-links, .auth-links { display: flex; gap: 15px; align-items: center; }
+        .nav-links a, .auth-links a {
+            color: white;
+            padding: 5px 10px;
+            transition: 0.3s;
+            font-size: 16px;
+        }
+        .nav-links a:hover, .auth-links a:hover { color: #f8e4ae; }
+        /* Dropdown for Services */
+        .dropdown { position: relative; }
+        .dropbtn { cursor: pointer; }
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #ace49e;
+            width: 350px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            padding: 10px;
+            z-index: 1000;
+        }
+        .dropdown-content .service-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid #ddd;
+            transition: background-color 0.3s;
+        }
+        .dropdown-content .service-item:last-child { border-bottom: none; }
+        .dropdown-content .service-item:hover {
+            background-color: #ffcc00;
+            color: #222;
+        }
+        .dropdown:hover .dropdown-content {
+            display: block;
+            animation: slideDown 0.3s ease-in-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .site-name {
+            font-size: 28px;
+            font-weight: bold;
+            color: #82df82;
+            transition: color 0.3s ease;
+        }
+        .site-name:hover { color: #ffcc00; }
+        /* Introduction Section */
+        .intro-section {
+            padding: 40px 20px;
+            background-color: #fff;
+        }
+        .intro-text h1 { font-size: 38px; margin-bottom: 20px; }
+        .intro-text p { font-size: 18px; }
+        /* Contact Form */
+        .card { border: none; }
+        .contact-form input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        /* Services Section */
+        .services-section { padding: 40px 20px; background-color: #f8f9fa; }
+        .services-section h2 { text-align: center; margin-bottom: 30px; font-size: 30px; }
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            text-align: center;
+        }
+        .service-box {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        /* FAQ Section */
+        .faq-section { padding: 40px 20px; background-color: #fff; }
+        .faq-section h2 { text-align: center; margin-bottom: 30px; font-size: 30px; }
+        .faq-item { cursor: pointer; border-bottom: 1px solid #ccc; padding: 10px 0; }
+        .faq-answer { display: none; padding: 5px 0 15px 0; }
+        /* Support Section */
+        .support-section {
+            background-color: #222;
+            color: white;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .regime-ai-section h3 {
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .regime-ai-section .btn-success {
+            background: linear-gradient(90deg, #2e7d32 60%, #81c784 100%);
+            border: none;
+        }
+        .regime-ai-section .btn-success:hover {
+            background: #1b5e20;
+        }
+
+        .chatbot-section h3 {
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+        .chatbot-section .btn-primary {
+            background: linear-gradient(90deg, #1976d2 60%, #64b5f6 100%);
+            border: none;
+        }
+        .chatbot-section .btn-primary:hover {
+            background: #1565c0;
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="{% url 'home' %}" class="site-name">PBS TaxWisary</a>
+        <div class="nav-links">
+            <a href="{% url 'users:base' %}">TAX_AI</a>
+            <a href="{% url 'users:about' %}">About</a>
+            <a href="{% url 'users:profile' %}">Profile</a>
+            <a href="#products">Products</a>
+            <div class="dropdown">
+                <span class="dropbtn">Services</span>
+                <div class="dropdown-content">
+                    <div class="service-item" title="Ensure timely submission and avoid penalties">Income Tax Filing</div>
+                    <div class="service-item" title="Optimize your tax liability with expert planning">Tax Planning</div>
+                    <div class="service-item" title="Hassle-free GST filing for your business">GST Filing</div>
+                    <div class="service-item" title="Get accurate calculations for advance tax">Advance Tax Calculation</div>
+                    <div class="service-item" title="Professional advice for your tax queries">Tax Consultancy</div>
+                    <div class="service-item" title="Schedule your tax returns in advance">ITR Pre-booking</div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-links">
+            <a href="{% url 'users:register' %}">Register</a>
+            <a href="{% url 'users:login' %}">Login</a>
+        </div>
+    </nav>
+
+    <!-- Introduction Section -->
+    <section class="intro-section" style="background: linear-gradient(120deg, #e0ffe0 60%, #e3f0ff 100%); border-radius: 0 0 40px 40px;">
+        <div class="container mt-5">
+            <div class="row align-items-center">
+                <!-- Left Side: Text Content -->
+                <div class="col-md-6 mb-4 mb-md-0">
+                    <div class="intro-text">
+                        <div style="font-size:2.5rem; color:#388e3c; margin-bottom:10px;">
+                            <i class="bi bi-bar-chart-line-fill"></i>
+                        </div>
+                        <h1 style="font-size:2.5rem; font-weight:700; color:#1976d2;">
+                            Tax Consultancy &amp; <span style="color:#388e3c;">Advisory Services</span>
+                        </h1>
+                        <h5 style="color:#555; margin-bottom:18px;">Your trusted partner for tax planning, filing, and compliance</h5>
+                        <p style="font-size:1.15rem;">
+                            <b>Expert guidance</b> to ensure compliance and financial efficiency.<br>
+                            Whether it's <span style="color:#1976d2;">filing</span>, <span style="color:#388e3c;">planning</span>, or <span style="color:#ff9800;">consultancy</span>, our services are tailored to <b>your needs</b>.
+                        </p>
+                        <a href="#services" class="btn btn-success mt-3 px-4 py-2" style="font-size:1.1rem; border-radius:25px;">Explore Our Services</a>
+                    </div>
+                </div>
+                <!-- Right Side: Contact Form -->
+                <div class="col-md-6">
+                    <div class="card shadow-lg p-4" style="border-radius:18px; background: linear-gradient(120deg, #fffbe7 60%, #e3f0ff 100%); border: 1px solid #e0e0e0;">
+                        <h3 class="text-center mb-2" style="color:#1976d2; font-weight:600;">Contact Us</h3>
+                        <p class="text-center" style="color:#555; font-size:1rem; margin-bottom:18px;">Have a question? Get a free callback from our experts.</p>
+                        <form onsubmit="return validateForm()">
+                            <div class="mb-3">
+                                <label class="form-label">Name:</label>
+                                <input type="text" id="name" class="form-control" placeholder="Enter your name">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Email:</label>
+                                <input type="email" id="email" class="form-control" placeholder="Enter your email">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Contact No.:</label>
+                                <input type="tel" id="contact" class="form-control" placeholder="Enter your contact number">
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100" style="border-radius:25px;">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+    
+    <!-- AI Chatbot Section -->
+    <section class="chatbot-section py-5" style="background: linear-gradient(90deg, #e3f0ff 60%, #fffbe7 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Left: Button to interact with AI Chatbot -->
+                <div class="col-md-5 text-center mb-4 mb-md-0">
+                    <h3 class="mb-3" style="color:#1565c0;">Talk to Our AI Chatbot</h3>
+                    <p>Chat live with our AI assistant to get personalized tax advice and answers to your queries.</p>
+                    <a href="{% url 'users:base' %}" class="btn btn-primary btn-lg px-5 py-3 shadow" style="font-size:1.2rem;">
+                        Start Chatting Now
+                    </a>
+                </div>
+                <!-- Right: Info about the AI Chatbot -->
+                <div class="col-md-7">
+                    <div class="p-4 rounded shadow" style="background: #fff;">
+                        <h4 class="mb-2" style="color:#1976d2;">How Our AI Chatbot Helps You</h4>
+                        <ul class="list-unstyled mb-0" style="font-size:1.1rem;">
+                            <li> <b>Conversational Guidance:</b> The chatbot asks you simple questions about your tax situation.</li>
+                            <li> <b>Data Collection:</b> Gathers your responses and required information step by step.</li>
+                            <li> <b>Instant Report:</b> Compiles your answers into a clear, actionable tax report.</li>
+                            <li> <b>Secure & Private:</b> Your data is confidential and only used for your report.</li>
+                            <li> <b>Fast & Friendly:</b> Get answers and your report in minutes, no waiting!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Regime Advisory AI Section -->
+    <section class="regime-ai-section py-5" style="background: linear-gradient(90deg, #e0ffe0 60%, #fffbe7 100%);">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Left: Button to interact with AI agent -->
+                <div class="col-md-5 text-center mb-4 mb-md-0">
+                    <h3 class="mb-3" style="color:#2e7d32;">Find Your Best Tax Regime</h3>
+                    <p>Let our AI agent analyze your details and recommend the most beneficial tax regime for you.</p>
+                    <a href="{% url 'regime:advisory' %}" class="btn btn-success btn-lg px-5 py-3 shadow" style="font-size:1.2rem;">
+                        Try Regime Advisory AI
+                    </a>
+                </div>
+                <!-- Right: Info about the AI agent -->
+                <div class="col-md-7">
+                    <div class="p-4 rounded shadow" style="background: #fff;">
+                        <h4 class="mb-2" style="color:#388e3c;">About Regime Advisory AI</h4>
+                        <ul class="list-unstyled mb-0" style="font-size:1.1rem;">
+                            <li><b>Smart Analysis:</b> Our AI agent asks you simple questions about your income, deductions, and investments.</li>
+                            <li><b>Personalized Recommendation:</b> Instantly compares Old vs. New Tax Regime based on your data.</li>
+                            <li><b>Private & Secure:</b> Your information is confidential and used only for regime analysis.</li>
+                            <li><b>Easy to Use:</b> No tax knowledge required—just answer and get your best option!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="services-section">
+        <h2>Our Services</h2>
+        <div class="services-grid">
+            <div class="service-box">
+                <h3>Income Tax Filing</h3>
+                <p>Ensure timely filing and compliance while avoiding penalties with our expert support.</p>
+            </div>
+            <div class="service-box">
+                <h3>Tax Planning</h3>
+                <p>Strategize your finances with effective planning to optimize your tax liability.</p>
+            </div>
+            <div class="service-box">
+                <h3>GST Filing</h3>
+                <p>Experience hassle-free GST filing customized for your business needs.</p>
+            </div>
+            <div class="service-box">
+                <h3>Advance Tax Calculation</h3>
+                <p>Receive accurate and timely calculations to keep your advance tax in check.</p>
+            </div>
+            <div class="service-box">
+                <h3>Tax Consultancy</h3>
+                <p>Benefit from professional advice on resolving your complex tax issues.</p>
+            </div>
+            <div class="service-box">
+                <h3>ITR Pre-booking</h3>
+                <p>Plan ahead and book your Income Tax Returns to secure your future appointments.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq-section">
+        <h2>Frequently Asked Questions</h2>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">What documents are required for tax filing?</div>
+            <div class="faq-answer">You will need your income statements, proof of investments, and other relevant tax documents.</div>
+        </div>
+        <div class="faq-item">
+            <div class="faq-question" onclick="toggleFAQ(this)">How do I prepare for tax planning?</div>
+            <div class="faq-answer">Start by gathering your financial records and consult our experts for personalized advice.</div>
+        </div>
+    </section>
+
+    <!-- Support Section -->
+    <section id="support" class="support-section">
+        <p>Need support? Call us at +1-800-123-4567 or email <a href="mailto:support@pbstaxs.com" style="color:#ffcc00;">support@pbstaxs.com</a></p>
+    </section>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // FAQ Toggle Function
+        function toggleFAQ(element) {
+            var answer = element.nextElementSibling;
+            answer.style.display = answer.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Form Validation
+        function validateForm() {
+            var name = document.getElementById('name').value;
+            var email = document.getElementById('email').value;
+            var contact = document.getElementById('contact').value;
+            if (name.length < 3) {
+                alert("Name must be at least 3 characters long.");
+                return false;
+            }
+            if (!email.includes("@")) {
+                alert("Enter a valid email address.");
+                return false;
+            }
+            if (contact.length !== 10 || isNaN(contact)) {
+                alert("Enter a valid 10-digit contact number.");
+                return false;
+            }
+            alert("Form submitted successfully!");
+            return true;
+        }
+    </script>
+</body>
+</html>
+
+

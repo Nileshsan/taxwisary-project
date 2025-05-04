@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Tax Advisory System</title>
+
+    <!-- Bootstrap & Google Fonts -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome for icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet"/>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(-45deg, #c8e6c9, #f0f4c3, #a5d6a7, #e6ee9c);
+            background-size: 400% 400%;
+            animation: gradientBG 12s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        @keyframes gradientBG {
+            0%, 100% {background-position: 0% 50%;}
+            50% {background-position: 100% 50%;}
+        }
+
+        /* Navbar */
+        .navbar {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(8px);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .navbar a {
+            color: #2e7d32;
+            font-weight: bold;
+            margin: 0 12px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .navbar a:hover {
+            text-decoration: underline;
+        }
+
+        /* Registration Form Container */
+        .register-container {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 40px;
+            width: 90%;
+            max-width: 400px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            color: #2e7d32;
+        }
+
+        .register-container h2 {
+            margin-bottom: 25px;
+            font-weight: bold;
+            font-size: 28px;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            padding: 14px;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 5px #8bc34a;
+            outline: none;
+        }
+
+        .btn-register {
+            background-color: #8bc34a;
+            color: white;
+            padding: 12px;
+            font-weight: 600;
+            border: none;
+            width: 100%;
+            border-radius: 10px;
+            transition: background 0.3s ease;
+        }
+
+        .btn-register:hover {
+            background-color: #7cb342;
+        }
+
+        .login-link {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .login-link a {
+            font-weight: bold;
+            color: #2e7d32;
+            text-decoration: none;
+        }
+
+        .login-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Google Button */
+        .google-btn {
+            margin-top: 15px;
+            background-color: white;
+            color: #444;
+            font-weight: 500;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 10px;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .google-btn:hover {
+            background-color: #f5f5f5;
+        }
+
+        .google-btn i {
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+        <a href="{% url 'home' %}">Home</a>
+        <a href="{% url 'users:login' %}?next={{ request.GET.next }}">Login</a>
+    </div>
+
+    <!-- Registration Form -->
+    <div class="register-container">
+        <h2><i class="fa-solid fa-user-plus"></i> Register</h2>
+        <form method="POST" action="{% url 'users:register' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.GET.next }}">
+
+            <!-- User Fields -->
+            <input type="text" class="form-control" name="username" placeholder="Username" required>
+            <input type="email" class="form-control" name="email" placeholder="Email" required>
+
+            <!-- Password Fields -->
+            <input type="password" class="form-control" name="password1" placeholder="Password" required>
+            <input type="password" class="form-control" name="password2" placeholder="Confirm Password" required>
+
+            <button class="btn-register" type="submit"><i class="fa-solid fa-user-check"></i> Register</button>
+        </form>
+
+        <!-- Google Registration -->
+        <a href="{% url 'social:begin' 'google-oauth2' %}" class="google-btn">
+            <i class="fab fa-google"></i> Continue with Google
+        </a>
+
+        <div class="login-link">
+            <p>Already have an account? 
+                <a href="{% url 'users:login' %}?next={{ request.GET.next }}">Login here</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

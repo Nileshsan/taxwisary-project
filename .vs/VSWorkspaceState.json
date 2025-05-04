@@ -1,0 +1,14 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\tax_advisory",
+    "\\tax_advisory\\tax_advisory",
+    "\\tax_advisory\\templates",
+    "\\tax_advisory\\users",
+    "\\tax_advisory\\users\\migrations",
+    "\\tax_advisory\\users\\templates",
+    "\\tax_advisory\\users\\templates\\users"
+  ],
+  "SelectedNode": "\\tax_advisory\\users\\templates\\users\\base.html",
+  "PreviewInSolutionExplorer": false
+}

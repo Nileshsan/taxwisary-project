@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Advisory System</title>
+    <style>
+        body {
+            background-color: beige;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #222;
+            padding: 15px 30px;
+            color: white;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: bold;
+        }
+        .navbar a:hover {
+            color: #bbb;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 250px;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: -250px;
+            background-color: #1a1a1a;
+            padding-top: 60px;
+            transition: 0.3s;
+        }
+        .sidebar a {
+            display: block;
+            color: #ddd;
+            padding: 15px;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .sidebar a:hover {
+            background-color: #333;
+        }
+        .sidebar .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: white;
+        }
+
+        /* Sidebar Toggle */
+        #menu-btn {
+            cursor: pointer;
+            font-size: 24px;
+        }
+
+        /* User Profile */
+        .profile-section {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .profile-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .profile-name {
+            color: white;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        .profile-email {
+            color: #bbb;
+            font-size: 14px;
+        }
+
+        /* Main Content */
+        .main-content {
+            text-align: center;
+            margin: 100px auto;
+            max-width: 800px;
+        }
+        .title {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+        }
+        .subtitle {
+            font-size: 20px;
+            color: #555;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="navbar">
+    <span id="menu-btn">&#9776; Menu</span>
+    <div>
+        <a href="{% url 'users:register' %}">Register</a>
+        <a href="{% url 'users:login' %}">Login</a>
+    </div>
+</div>
+
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <span class="close-btn" id="close-btn">&times;</span>
+        <div class="profile-section">
+            <p id="profile-name" class="profile-name">{{ user.username }}</p>
+            <p id="profile-email" class="profile-email">{{ user.email }}</p>
+            <img id="profile-img" class="profile-img" src="{{ user.profile.profile_pic.url }}" alt="User">
+
+        </div>
+        <a href="{% url 'home' %}">home</a>
+        <a href="{% url 'users:dashboard' %}">dashboard</a>
+        <a href="{% url 'users:profile' %}">profile</a>
+        <a href="#">Settings</a>
+        <a href="#">Historical Data</a>
+        <a href="#">About</a>
+        <a href="{% url 'users:logout' %}">Logout ({{ user.username }})</a>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="title">Tax Advisory System</h1>
+        <p class="subtitle">Your smart solution for tax planning and compliance.</p>
+    </div>
+
+    <script>
+        document.getElementById("menu-btn").addEventListener("click", function () {
+            document.getElementById("sidebar").style.left = "0";
+        });
+
+        document.getElementById("close-btn").addEventListener("click", function () {
+            document.getElementById("sidebar").style.left = "-250px";
+        });
+
+        // Load user data if available
+        document.addEventListener("DOMContentLoaded", function () {
+            const user = JSON.parse(localStorage.getItem("user"));
+            if (user) {
+                document.getElementById("profile-name").textContent = user.name;
+                document.getElementById("profile-email").textContent = user.email;
+                document.getElementById("profile-img").src = user.profilePic;
+            } else {
+                document.getElementById("profile-name").textContent = "Guest";
+                document.getElementById("profile-email").textContent = "guest@example.com";
+                document.getElementById("profile-img").src = "https://via.placeholder.com/100";
+            }
+
+        });
+    </script>
+
+</body>
+</html>

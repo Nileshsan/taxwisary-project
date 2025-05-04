@@ -1,0 +1,223 @@
+want to create an web application in which user will log in or sign up through email or google afterwards it will create a place where the specific user data will be store and taht will happend as a side function 
+after entring the user will use the main funtion for now which is it will taek information from the user about itr i have a sequence of qurstion which are necessary and some are optional according to the user previous qurstions like if you rent a home if no then we wont go deep 
+with each question user can upload document which will be stored in the database which emplyer can accesss later 
+at end of the question it will compile information for user and give the output which is opinion 
+once the detaied info was taken another model will come in play which will caluculate the tax for old and new regime (this feature is not the main and veery import its justa side function ) fter caluclation it will tell user taht its beteer or another one 
+
+it eill tell net taxable income 
+and many more features to come 
+
+
+
+
+
+def chat_page(request):
+    return render(request, 'chat.html')
+
+def chatbot(request):
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)  # Parse JSON data from request
+            user_message = data.get("message", "").strip().lower()
+        except (json.JSONDecodeError, AttributeError):
+            return JsonResponse({"response": "Invalid request format. Please send a valid JSON request."}, status=400)
+    else:
+        user_message = request.GET.get("message", "").strip().lower()
+
+    session = request.session
+
+    # Initialize session state if not set
+    if "chat_state" not in session:
+        session["chat_state"] = "start"
+        session.modified = True  # Mark session as modified
+        return JsonResponse({"response": "Hi! What is your name?"})
+
+    state = session["chat_state"]
+
+    if state == "start":
+        if not user_message:
+            return JsonResponse({"response": "Please enter a valid name."})
+        session["name"] = user_message.title()
+        session["chat_state"] = "age"
+    
+        session.modified = True
+        return JsonResponse({"response": f"Nice to meet you, {session['name']}! How old are you?"})
+
+    elif state == "age":
+        if not user_message.isdigit():
+            return JsonResponse({"response": "Please enter a valid number for your age."})
+        
+        session["age"] = int(user_message)
+        session["chat_state"] = "user_type"
+        session.modified = True
+        return JsonResponse({"response": "Are you salaried or self-employed?"})
+
+    elif state == "user_type":
+        if user_message not in ["salaried", "self-employed"]:
+            return JsonResponse({"response": "Invalid response. Please type 'salaried' or 'self-employed'."})
+        
+        session["user_type"] = user_message
+        session["chat_state"] = "income"
+        session.modified = True
+        return JsonResponse({"response": "What is your annual income?"})
+
+    elif state == "income":
+        if not user_message.isdigit():
+            return JsonResponse({"response": "Please enter a valid number for income."})
+        
+        session["income"] = int(user_message)
+        session["chat_state"] = "rental_income"
+        session.modified = True
+        return JsonResponse({"response": "Do you have rental income? (yes/no)"})
+
+    elif state == "rental_income":
+        if user_message not in ["yes", "no"]:
+            return JsonResponse({"response": "Invalid response. Please type 'yes' or 'no'."})
+        
+        if user_message == "yes":
+            session["chat_state"] = "rental_income_amount"
+            session.modified = True
+            return JsonResponse({"response": "Enter your rental income amount:"})
+        else:
+            session["rental_income"] = 0  # Set default rental income if none
+            session["chat_state"] = "section_80C"
+            session.modified = True
+            return JsonResponse({"response": "Do you have any investments under Section 80C? (yes/no)"})
+
+    elif state == "rental_income_amount":
+        if not user_message.isdigit():
+            return JsonResponse({"response": "Please enter a valid rental income amount."})
+        
+        session["rental_income"] = int(user_message)
+        session["chat_state"] = "section_80C"
+        session.modified = True
+        return JsonResponse({"response": "Do you have any investments under Section 80C? (yes/no)"})
+
+    elif state == "section_80C":
+        if user_message not in ["yes", "no"]:
+            return JsonResponse({"response": "Invalid response. Please type 'yes' or 'no'."})
+        
+        if user_message == "yes":
+            session["chat_state"] = "investment_amount"
+            session.modified = True
+            return JsonResponse({"response": "Enter your investment amount:"})
+        else:
+            session["section_80C"] = 0  # Default value if no investment
+            session["chat_state"] = "summary"
+            session.modified = True
+            return generate_summary(session)
+
+    elif state == "investment_amount":
+        if not user_message.isdigit():
+            return JsonResponse({"response": "Please enter a valid investment amount."})
+        
+        session["section_80C"] = int(user_message)
+        session["chat_state"] = "summary"
+        session.modified = True
+        return generate_summary(session)
+
+    elif state == "summary":
+        session["chat_state"] = "tax_prompt"
+        session.modified = True
+        return JsonResponse({
+            "response": generate_summary_text(session) + "\nWould you like to proceed with tax calculation? (yes/no)"
+        })
+
+    elif state == "tax_prompt":
+        if user_message not in ["yes", "no"]:
+            return JsonResponse({"response": "Invalid response. Please type 'yes' or 'no'."})
+        
+        if user_message == "yes":
+            return tax_comparison(session)
+        else:
+            session["chat_state"] = "end"
+            session.modified = True
+            return JsonResponse({"response": "Okay! Let me know if you need anything else."})
+
+    return JsonResponse({"response": "I didn't understand that. Please try again."})
+
+def generate_summary_text(session):
+    """Generate a summary text without returning a JsonResponse"""
+    return f"""
+    So far, we have discussed:
+    🏷️ Name: {session['name']}
+    🎂 Age: {session['age']}
+    👔 Employment Type: {session['user_type']}
+    💰 Income: ₹{session['income']}
+    🏠 Rental Income: ₹{session.get('rental_income', 0)}
+    📊 Section 80C Investment: ₹{session.get('section_80C', 0)}
+    """
+
+def generate_summary(session):
+    """Generate a JSON summary response."""
+    session["chat_state"] = "tax_prompt"  # Move to tax prompt state
+    session.modified = True
+    return JsonResponse({
+        "response": generate_summary_text(session) + "\nWould you like to proceed with tax calculation? (yes/no)"
+    })
+
+def tax_comparison(session):
+    """Perform Old vs. New Regime Tax Calculation"""
+    income = session.get("income", 0)
+    rental_income = session.get("rental_income", 0)
+    section_80C = session.get("section_80C", 0)
+
+    taxable_income = income + rental_income - section_80C
+    old_tax = taxable_income * 0.3  # Example calculation
+    new_tax = taxable_income * 0.25  # Example calculation
+
+    session["chat_state"] = "end"
+    session.modified = True
+
+    return JsonResponse({
+        "response": f"Here is your tax comparison:\n\n"
+                    f"📝 Old Regime Tax: ₹{old_tax}\n"
+                    f"📝 New Regime Tax: ₹{new_tax}\n"
+                    f"✅ Recommended: {'Old Regime' if old_tax < new_tax else 'New Regime'}\n"
+                    f"Let me know if you need further assistance!"
+    })
+
+
+
+
+
+
+
+keep in find the project of tax advisory 
+
+a chatbot
+which will ask questions in order in logic which is specific 
+the project is i want make a chatbot 
+when i gone to that page which for me is my 8000\user\base
+then bot will or i will text hii
+it should understand me and see if he haev information on me if he have then he should say i have infor on you do you want me to fetch it and compile into repost for you 
+if he dont then according to sequence of our logic he should ask me relevent questions 
+of course sequence wil be there but suppose i will train a llm+nlp model name nilesh.keras 
+it want it to understand the answer user put then it should see logic and set the next question needed to ask 
+i dont want llm to be any fancy or big it should able to do my task gracefully 
+it should be able to write 1 2 sentence to user anwers pleasing to the user
+after alll the catagory of thr question answerd from the user it should 
+compile information for the user 
+as so far we discuassed ....
+after word it will taek input frrom user if evrrything is right if there is some wrong or error
+user will say this part is wrong this is the correction and it should maake the changes in the compiled data and the main data where we will save this data in neon db
+also there will be files that we will tae from the user and store them in cloudinary i should get to access those files 
+
+after corrections and users apporoval the compiled data shuld converted into pdf report
+then this pdf ot data will go to second llm 
+i want to build the second llm which will taek taht information about client and find suggestion on it and ways user can save tax and all 
+
+my second bit shiuld be capable if taht tasks as wel as it should understand if user asked any question and it shiuld redirect them means answer them or tell them to get in contact with my employee something like atht 
+
+so my first which will be report 
+it should have many sections basic 
+basic income
+deduction of many ways 
+then at end calculation on the data numbers we takem from user 
+then this all  i iwll amnuall do 
+
+what i want now is get this all information and give me a very very deatiled roadmap 
+i want very big responce of to dos and what is more better 
+
+this is the most important and development and challenging poject for me
+
