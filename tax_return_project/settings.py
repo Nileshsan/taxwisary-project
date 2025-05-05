@@ -64,6 +64,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'social_django',
     'django.contrib.sitemaps',
+    
 ]
 
 MIDDLEWARE = [

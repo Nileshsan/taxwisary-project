@@ -33,3 +33,4 @@ django-cloudinary-storage
 django-crispy-forms==1.14.0
 django-allauth==0.51.0
 python-decouple
+social-auth-app-django
