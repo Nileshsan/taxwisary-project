@@ -131,7 +131,7 @@ python-decouple==3.8
 python-dotenv==1.1.0
 python-json-logger==3.3.0
 python3-openid==3.2.0
-pywin32==310
+pywin32==306
 pywinpty==2.0.15
 PyYAML==6.0.2
 pyzmq==26.3.0
