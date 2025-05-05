@@ -31,3 +31,5 @@ python-dotenv
 django-cloudinary-storage
 
 django-crispy-forms==1.14.0
+python-decouple
+
