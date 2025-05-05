@@ -121,7 +121,6 @@ pure_eval==0.2.3
 pyasn1==0.6.1
 pyasn1_modules==0.4.2
 pycparser==2.22
-Pygments==2.19.1
 pyHanko==0.26.0
 pyhanko-certvalidator==0.26.8
 PyJWT==2.10.1
