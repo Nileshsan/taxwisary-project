@@ -38,4 +38,4 @@ whitenoise
 PyPDF2
 tesseract
 
-
+django-allauth
