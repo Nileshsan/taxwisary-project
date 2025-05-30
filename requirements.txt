@@ -35,3 +35,7 @@ django-allauth==0.51.0
 python-decouple
 social-auth-app-django
 whitenoise
+PyPDF2
+tesseract
+tempfile 
+

@@ -5,7 +5,9 @@ app_name = "regime"
 
 urlpatterns = [
     path("", views.regime_advisory, name="advisory"),
-    path('regime-ai/', views.regime_ai, name='regime_ai'),
+    path('regime_ai/', views.regime_ai, name='regime_ai'),
+    path('upload_doc/', views.upload_doc, name='upload_doc'),
+
 
 
 

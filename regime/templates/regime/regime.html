@@ -180,6 +180,33 @@
       animation-delay: 0.4s;
     }
 
+    .regime-card {
+      background: #eef6f9;
+      border: 1px solid #cdd9e5;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-top: 1rem;
+    }
+
+    .regime-card h3 {
+      margin: 0 0 0.5rem 0;
+      color: #333;
+    }
+
+    .regime-card p {
+      margin: 0.5rem 0;
+      line-height: 1.4;
+    }
+
+    .regime-details {
+      font-size: 0.85em;
+      color: #666;
+      margin-top: 1rem;
+      border-top: 1px dashed #ccc;
+      padding-top: 0.5rem;
+    }
+
     @keyframes blink {
       0%, 100% { opacity: 0.2 }
       50% { opacity: 1 }
@@ -204,141 +231,237 @@
 </div>
 
 <script>
-  const sendBtn = document.getElementById("sendBtn");
-  const userInput = document.getElementById("userInput");
   const messages = document.getElementById("messages");
-  const toggleDark = document.getElementById("toggleDark");
+  const userInput = document.getElementById("userInput");
+  const sendBtn = document.getElementById("sendBtn");
 
-  toggleDark.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-    toggleDark.textContent = document.body.classList.contains("dark") ? "☀️" : "🌙";
-  });
+  function scrollToBottom() {
+    messages.scrollTop = messages.scrollHeight;
+  }
 
-  sendBtn.addEventListener("click", sendMessage);
-  userInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") sendMessage();
-  });
-
-  function sendMessage() {
-    const msg = userInput.value.trim();
-    if (!msg) return;
-
-    addMessage(msg, 'user');
-    userInput.value = "";
-
-    addTypingDots();
-    setTimeout(() => {
-      removeTypingDots();
-      handleBotResponse(msg.toLowerCase());
-    }, 1000);
+  function sanitizeHTML(str) {
+    const div = document.createElement("div");
+    div.innerText = str;
+    return div.innerHTML;
   }
 
   function addMessage(text, sender) {
     const div = document.createElement("div");
     div.classList.add("message", sender);
-    div.innerText = text;
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  function addTypingDots() {
-    const typing = document.createElement("div");
-    typing.className = "message bot typing";
-    typing.id = "typing";
-    typing.innerHTML = "<span></span><span></span><span></span>";
-    messages.appendChild(typing);
-    messages.scrollTop = messages.scrollHeight;
-  }
-
-  function removeTypingDots() {
-    const typing = document.getElementById("typing");
-    if (typing) typing.remove();
-  }
-
-  function handleBotResponse(input) {
-    if (input.includes("no") || input.includes("manual")) {
-      addMessage("No problem! Please fill out this form 👇", "bot");
-      showManualForm();
-    } else if (input.includes("upload") || input.includes("form") || input.includes("yes")) {
-      addMessage("Awesome! Upload your documents here 👇", "bot");
-      showUploadForm();
+    // Only sanitize if sender is the user (or if text isn't trusted)
+    if (sender === "user") {
+      div.innerHTML = sanitizeHTML(text);
     } else {
-      addMessage("Got it! Please clarify if you want to upload or enter manually.", "bot");
+      // for trusted bot messages, assign as HTML
+      div.innerHTML = text;
     }
+    messages.appendChild(div);
+    scrollToBottom();
   }
 
-  function showUploadForm() {
-    const form = document.createElement("form");
-    form.innerHTML = `
+  function renderUploadForm() {
+    return `
       <label>Upload Salary Slip / Form 16 / 26AS:</label>
       <input type="file" name="document" multiple required />
       <button type="submit" style="margin-top: 10px;">Submit</button>
     `;
-    messages.appendChild(form);
-    messages.scrollTop = messages.scrollHeight;
-
-    form.addEventListener("submit", async function (e) {
-      e.preventDefault();
-      const fileInput = form.querySelector('input[type="file"]');
-      const formData = new FormData();
-      for (const file of fileInput.files) formData.append("documents", file);
-
-      try {
-        const res = await fetch("/users/upload-doc/", { method: "POST", body: formData });
-        if (!res.ok) throw new Error("Upload failed");
-        const data = await res.json();
-        addMessage("📊 Here's the extracted data, please confirm:", "bot");
-        addMessage(JSON.stringify(data), "bot");
-
-        const aiRes = await fetch("/users/regime-ai/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ extracted_data: data }),
-        });
-        const aiText = await aiRes.text();
-        addMessage("💡 Regime Advice: " + aiText, "bot");
-      } catch (err) {
-        addMessage("❌ Upload failed. Please try again.", "bot");
-      }
-    });
   }
 
-  function showManualForm() {
-    const form = document.createElement("form");
-    form.innerHTML = `
-      <label>Annual Salary:</label>
-      <input name="salary" type="number" required />
-      <label>HRA Claimed:</label>
-      <input name="hra" type="number" />
-      <label>80C Deductions:</label>
-      <input name="deductions" type="number" />
+  function renderManualInputForm() {
+    return `
+      <label>Enter Your Salary Details:</label><br>
+      <input type="number" name="salary" placeholder="Annual Salary" required /><br>
+      <input type="number" name="hra" placeholder="HRA" /><br>
+      <input type="number" name="deductions" placeholder="Investments (80C)" /><br>
       <button type="submit" style="margin-top: 10px;">Submit</button>
     `;
-    messages.appendChild(form);
-    messages.scrollTop = messages.scrollHeight;
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const data = {
-        salary: form.salary.value,
-        hra: form.hra.value,
-        deductions: form.deductions.value,
-      };
-
-      try {
-        const aiRes = await fetch("/users/regime-ai/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ extracted_data: data }),
-        });
-        const aiText = await aiRes.text();
-        addMessage("💡 Regime Advice: " + aiText, "bot");
-      } catch (err) {
-        addMessage("❌ Failed to fetch regime advice. Try again.", "bot");
-      }
-    });
   }
+
+  async function handleUpload(files) {
+    const formData = new FormData();
+    Array.from(files).forEach(file => formData.append("document", file));
+
+    addMessage("📤 Uploading documents for tax calculation...", "bot");
+
+    try {
+      const uploadRes = await fetch("/regime/upload_doc/", {
+        method: "POST",
+        body: formData
+      });
+
+      if (!uploadRes.ok) throw new Error("Upload failed");
+
+      const extracted = await uploadRes.json();
+
+      // Optionally show extracted data for transparency
+      if (Object.keys(extracted).length > 0) {
+        addMessage(
+          `📄 Extracted Data:<br>` +
+          Object.entries(extracted).map(([k, v]) => `${k}: <b>${v}</b>`).join("<br>"),
+          "bot"
+        );
+      }
+
+      await handleManualData({ extracted_data: extracted });
+    } catch (err) {
+      console.error(err);
+      addMessage("❌ Failed to upload. Try again later.", "bot");
+    }
+  }
+
+async function handleManualData(data) {
+  addMessage("🧮 Processing your inputs for advisory...", "bot");
+
+  try {
+    const response = await fetch("/regime/regime_ai/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(data)
+    });
+
+    let result;
+    try {
+      result = await response.json();
+      console.log("Backend result:", result);
+    } catch (jsonErr) {
+      const text = await response.text();
+      console.error("Failed to parse JSON. Raw response:", text);
+      addMessage("❌ Backend did not return valid JSON: " + text, "bot");
+      return;
+    }
+
+    if (!response.ok) {
+      if (result && result.error) {
+        addMessage("❌ " + result.error + " " + JSON.stringify(result, null, 2), "bot");
+      } else {
+        addMessage("❌ Server error. Try again later. " + JSON.stringify(result, null, 2), "bot");
+      }
+      return;
+    }
+
+    if (result.error) {
+      addMessage("❌ " + result.error + " " + JSON.stringify(result, null, 2), "bot");
+      return;
+    }
+
+    // Determine recommended regime in a natural way.
+    // If both regimes yield the same tax, we favor the New Tax Regime.
+    let recommendedName, recommended;
+    if (result.suggestion.toLowerCase().includes("both regimes")) {
+      recommendedName = "New Tax Regime";
+      recommended = result.new_regime;
+    } else {
+      recommendedName = result.suggestion.includes("Old") ? "Old Tax Regime" : "New Tax Regime";
+      recommended = result.suggestion.includes("Old") ? result.old_regime : result.new_regime;
+    }
+
+    // Create a natural language message.
+const msg = `
+  <div class="regime-card">
+    <h3>Recommendation</h3>
+    <p>Based on the details you provided, I recommend you opt for the ${recommendedName}.</p>
+    <p>Under this regime, your estimated taxable income is <₹${Number(recommended.taxable_income).toLocaleString()} and your tax payable would be around ₹${Number(recommended.tax).toLocaleString()}.</p>
+    <p>This recommendation considers the deductions and exemptions available, aiming to minimize your tax burden in a simple manner.</p>
+    <p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on any changes to tax laws or your unique situation.</p>
+    <p>Hope this helps you plan your finances better!</p>
+  </div>
+`;
+
+const details = `
+  <div class="regime-details">
+    <p>
+      For your reference:
+      
+      <em>Old Tax Regime</em> – Taxable Income: ₹${Number(result.old_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.old_regime.tax).toLocaleString()}
+      <em>New Tax Regime</em> – Taxable Income: ₹${Number(result.new_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.new_regime.tax).toLocaleString()}
+    </p>
+    
+      *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
+    </p>
+  </div>
+`;
+
+addMessage(msg + details, "bot");
+  } catch (err) {
+    console.error(err);
+    addMessage("❌ JS error: " + err.message + " " + err.stack, "bot");
+  }
+}
+
+
+  function handleFormSubmit(event, type) {
+    event.preventDefault();
+    const form = event.target;
+
+    // Remove any existing forms before adding a new one
+    document.querySelectorAll("#messages form").forEach(f => f.remove());
+
+    if (type === "upload") {
+      const files = form.querySelector('input[type="file"]').files;
+      if (files.length === 0) {
+        addMessage("❗ Please select at least one document to upload.", "bot");
+        return;
+      }
+      handleUpload(files);
+    } else if (type === "manual") {
+      const salary = parseFloat(form.salary.value);
+      const hra = parseFloat(form.hra.value) || 0;
+      const deductions = parseFloat(form.deductions.value) || 0;
+
+      if (isNaN(salary) || salary <= 0) {
+        addMessage("❗ Enter a valid salary.", "bot");
+        return;
+      }
+
+      const data = { salary, hra, deductions };
+      handleManualData(data);
+    }
+
+    form.remove();
+  }
+
+  sendBtn.addEventListener("click", async () => {
+    const input = userInput.value.trim();
+    if (!input) return;
+
+    addMessage(input, "user");
+    userInput.value = "";
+
+    // Remove any existing forms before adding a new one
+    document.querySelectorAll("#messages form").forEach(f => f.remove());
+
+    if (input.toLowerCase().includes("upload")) {
+      addMessage("📂 Sure! Upload your documents below:", "bot");
+
+      const form = document.createElement("form");
+      form.innerHTML = renderUploadForm();
+      form.addEventListener("submit", e => handleFormSubmit(e, "upload"));
+      messages.appendChild(form);
+      scrollToBottom();
+    } else if (input.toLowerCase().includes("manual")) {
+      addMessage("📝 Okay! Please enter your salary details below:", "bot");
+
+      const form = document.createElement("form");
+      form.innerHTML = renderManualInputForm();
+      form.addEventListener("submit", e => handleFormSubmit(e, "manual"));
+      messages.appendChild(form);
+      scrollToBottom();
+    } else {
+      addMessage("🤖 I can help you with your tax regime advisory. Type 'upload' or 'manual' to get started.", "bot");
+    }
+  });
+
+  userInput.addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sendBtn.click();
+    }
+  });
 </script>
+
+
 
 </body>
 </html>
