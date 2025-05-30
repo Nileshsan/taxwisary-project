@@ -37,4 +37,5 @@ social-auth-app-django
 whitenoise
 PyPDF2
 tesseract
+pytesseract
 django-allauth
