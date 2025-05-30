@@ -39,3 +39,4 @@ PyPDF2
 tesseract
 
 django-allauth
+allauth.account.middleware
