@@ -31,11 +31,11 @@ python-dotenv
 django-cloudinary-storage
 
 django-crispy-forms==1.14.0
-django-allauth==0.51.0
+django-allauth
 python-decouple
 social-auth-app-django
 whitenoise
 PyPDF2
 tesseract
 
-django-allauth
+--upgrade django-allauth
