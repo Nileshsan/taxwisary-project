@@ -77,11 +77,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+
     'allauth.account.middleware.AccountMiddleware', 
 ]
 
 ROOT_URLCONF = 'tax_return_project.urls'
-
+SITE_ID = 1
 
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
