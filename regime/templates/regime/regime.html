@@ -356,40 +356,42 @@ async function handleManualData(data) {
       recommendedName = result.suggestion.includes("Old") ? "Old Tax Regime" : "New Tax Regime";
       recommended = result.suggestion.includes("Old") ? result.old_regime : result.new_regime;
     }
-
-    // Create a natural language message.
-const msg = `
-  <div class="regime-card">
-    <h3>Recommendation</h3>
-    <p>Based on the details you provided, I recommend you opt for the ${recommendedName}.</p>
-    <p>Under this regime, your estimated taxable income is <₹${Number(recommended.taxable_income).toLocaleString()} and your tax payable would be around ₹${Number(recommended.tax).toLocaleString()}.</p>
-    <p>This recommendation considers the deductions and exemptions available, aiming to minimize your tax burden in a simple manner.</p>
-    <p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on any changes to tax laws or your unique situation.</p>
-    <p>Hope this helps you plan your finances better!</p>
-  </div>
-`;
-
-const details = `
-  <div class="regime-details">
-    <p>
-      For your reference:
-      
-      <em>Old Tax Regime</em> – Taxable Income: ₹${Number(result.old_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.old_regime.tax).toLocaleString()}
-      <em>New Tax Regime</em> – Taxable Income: ₹${Number(result.new_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.new_regime.tax).toLocaleString()}
-    </p>
     
-      *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
-    </p>
-  </div>
-`;
+    // Create a natural language message including excess tax details.
+    const msg = `
+      <div class="regime-card">
+        <h3>Recommendation</h3>
+        <p>Based on the details you provided, I recommend you opt for the ${recommendedName}.</p>
+        <p>Under this regime, your estimated taxable income is ₹${(recommended.taxable_income).toLocaleString()} and your tax payable would be around ₹${Number(recommended.tax).toLocaleString()}.</p>
+        ${result.excess_Deducation > 0 
+          ? `<p> The amout of deduction required under Old regime is ₹${(result.excess_Deducation).toLocaleString()}, So that old will be more benefitial then New regime .</p>`
+          : `<p>No extra tax benefit was calculated from the excess tax component.</p>`}
+        <p>This recommendation considers the deductions and exemptions available, aiming to minimize your tax burden in a simple manner.</p>
+        <p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on any changes to tax laws or your unique situation.</p>
+        <p>Hope this helps you plan your finances better!</p>
+      </div>
+    `;
 
-addMessage(msg + details, "bot");
+    const details = `
+      <div class="regime-details">
+        <p>
+          For your reference:
+          <br/><em>Old Tax Regime</em> – Taxable Income: ₹${Number(result.old_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.old_regime.tax).toLocaleString()}
+          <br/><em>New Tax Regime</em> – Taxable Income: ₹${Number(result.new_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.new_regime.tax).toLocaleString()}
+          <br/>Excess Deduction Required for Break Even: ₹${(result.excess_Deducation).toLocaleString()}
+        </p>
+        <p>
+          *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
+        </p>
+      </div>
+    `;
+
+    addMessage(msg + details, "bot");
   } catch (err) {
     console.error(err);
     addMessage("❌ JS error: " + err.message + " " + err.stack, "bot");
   }
 }
-
 
   function handleFormSubmit(event, type) {
     event.preventDefault();
