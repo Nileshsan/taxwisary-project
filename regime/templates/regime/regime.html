@@ -270,9 +270,9 @@
   function renderManualInputForm() {
     return `
       <label>Enter Your Salary Details:</label><br>
-      <input type="number" name="salary" placeholder="Annual Salary" required /><br>
-      <input type="number" name="hra" placeholder="HRA" /><br>
-      <input type="number" name="deductions" placeholder="Investments (80C)" /><br>
+      <input type="number" name="salary" placeholder="Salaried Income" required /><br>
+      <input type="number" name="hra" placeholder="Exemptions (HRA, LTA...)" /><br>
+      <input type="number" name="deductions" placeholder="Deductions (80C, 80D...)" /><br>
       <button type="submit" style="margin-top: 10px;">Submit</button>
     `;
   }
@@ -309,89 +309,118 @@
     }
   }
 
-async function handleManualData(data) {
-  addMessage("🧮 Processing your inputs for advisory...", "bot");
+  
+  // Utility function to build HTML safely. (Assumes trusted data for bot messages.)
+  const buildMarkup = (html) => html;
 
-  try {
-    const response = await fetch("/regime/regime_ai/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(data)
-    });
-
-    let result;
-    try {
-      result = await response.json();
-      console.log("Backend result:", result);
-    } catch (jsonErr) {
-      const text = await response.text();
-      console.error("Failed to parse JSON. Raw response:", text);
-      addMessage("❌ Backend did not return valid JSON: " + text, "bot");
-      return;
-    }
-
-    if (!response.ok) {
-      if (result && result.error) {
-        addMessage("❌ " + result.error + " " + JSON.stringify(result, null, 2), "bot");
-      } else {
-        addMessage("❌ Server error. Try again later. " + JSON.stringify(result, null, 2), "bot");
-      }
-      return;
-    }
-
-    if (result.error) {
-      addMessage("❌ " + result.error + " " + JSON.stringify(result, null, 2), "bot");
-      return;
-    }
-
-    // Determine recommended regime in a natural way.
-    // If both regimes yield the same tax, we favor the New Tax Regime.
-    let recommendedName, recommended;
-    if (result.suggestion.toLowerCase().includes("both regimes")) {
-      recommendedName = "New Tax Regime";
-      recommended = result.new_regime;
-    } else {
-      recommendedName = result.suggestion.includes("Old") ? "Old Tax Regime" : "New Tax Regime";
-      recommended = result.suggestion.includes("Old") ? result.old_regime : result.new_regime;
-    }
-    
-    // Create a natural language message including excess tax details.
-    const msg = `
+  // Build the main recommendation card
+  const buildRecommendationCard = (recommendedName, recommended, excessDeduction) => {
+    return `
       <div class="regime-card">
         <h3>Recommendation</h3>
         <p>Based on the details you provided, I recommend you opt for the ${recommendedName}.</p>
-        <p>Under this regime, your estimated taxable income is ₹${(recommended.taxable_income).toLocaleString()} and your tax payable would be around ₹${Number(recommended.tax).toLocaleString()}.</p>
-        ${result.excess_Deducation > 0 
-          ? `<p> The amout of deduction required under Old regime is ₹${(result.excess_Deducation).toLocaleString()}, So that old will be more benefitial then New regime .</p>`
-          : `<p>No extra tax benefit was calculated from the excess tax component.</p>`}
-        <p>This recommendation considers the deductions and exemptions available, aiming to minimize your tax burden in a simple manner.</p>
-        <p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on any changes to tax laws or your unique situation.</p>
+        <p>Under this regime, your estimated taxable income is ₹${Number(recommended.taxable_income).toLocaleString()} and your tax payable would be around ₹${Number(recommended.tax).toLocaleString()}.</p>
+        ${
+          // Show this message only if the new regime is recommended (i.e. Old regime tax is higher)
+          // and if the extra deduction is a positive value.
+          recommendedName === "New Tax Regime" && excessDeduction > 0
+            ? `<p>The additional deduction required under the Old Regime to break even is ₹${Number(excessDeduction).toLocaleString()}.</p>`
+            : `<p>No extra tax benefit was calculated from the excess tax component.</p>`
+        }
+        <p>This recommendation takes into account the available deductions and exemptions, aiming to minimize your tax burden in a simple manner.</p>
+        <p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on changes to tax laws or your specific situation.</p>
         <p>Hope this helps you plan your finances better!</p>
       </div>
     `;
+  };
 
-    const details = `
+  // Build the reference details block
+  const buildDetailsBlock = (oldRegime, newRegime, excessDeduction) => {
+    return `
       <div class="regime-details">
         <p>
           For your reference:
-          <br/><em>Old Tax Regime</em> – Taxable Income: ₹${Number(result.old_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.old_regime.tax).toLocaleString()}
-          <br/><em>New Tax Regime</em> – Taxable Income: ₹${Number(result.new_regime.taxable_income).toLocaleString()}, Tax: ₹${Number(result.new_regime.tax).toLocaleString()}
-          <br/>Excess Deduction Required for Break Even: ₹${(result.excess_Deducation).toLocaleString()}
+          <br/><em>Old Tax Regime</em> – Taxable Income: ₹${Number(oldRegime.taxable_income).toLocaleString()}, Tax: ₹${Number(oldRegime.tax).toLocaleString()}
+          <br/><em>New Tax Regime</em> – Taxable Income: ₹${Number(newRegime.taxable_income).toLocaleString()}, Tax: ₹${Number(newRegime.tax).toLocaleString()}
+          <br/>Excess Deduction Required for Break Even: ₹${Number(excessDeduction).toLocaleString()}
         </p>
-        <p>
-          *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
-        </p>
+        <p>*Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.</p>
       </div>
     `;
+  };
 
-    addMessage(msg + details, "bot");
-  } catch (err) {
-    console.error(err);
-    addMessage("❌ JS error: " + err.message + " " + err.stack, "bot");
+  // Build the excess deduction advice box
+  const buildExcessAdviceBox = (excessDeduction) => {
+    return `
+      <div class="excess-box">
+        <h3>Excess Deduction Details</h3>
+        <p> Advise based on the excess deduction component:</p>
+        ${
+          excessDeduction > 0 
+            ? `<p>To break even with the Old Tax Regime, an extra deduction of ₹${Number(excessDeduction).toLocaleString()} is required.</p>`
+            : `<p>No extra benefit was derived from the excess deduction component.</p>`
+        }
+        <p>This value is derived based on the difference between the tax values of the two regimes and the taxable income .</p>
+      </div>
+    `;
+  };
+
+  async function handleManualData(data) {
+    addMessage("🧮 Processing your inputs for advisory...", "bot");
+
+    try {
+      const response = await fetch("/regime/regime_ai/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+
+      let result;
+      try {
+        result = await response.json();
+        console.log("Backend result:", result);
+      } catch (jsonErr) {
+        const text = await response.text();
+        console.error("Failed to parse JSON. Raw response:", text);
+        addMessage("❌ Backend did not return valid JSON: " + text, "bot");
+        return;
+      }
+
+      if (!response.ok) {
+        addMessage("❌ " + (result.error || "Server error. Try again later."), "bot");
+        return;
+      }
+
+      if (result.error) {
+        addMessage("❌ " + result.error, "bot");
+        return;
+      }
+
+      // Determine recommended regime. If both regimes yield the same tax, favor New Tax Regime.
+      let recommendedName, recommended;
+      if (result.suggestion.toLowerCase().includes("both regimes")) {
+        recommendedName = "New Tax Regime";
+        recommended = result.new_regime;
+      } else {
+        recommendedName = result.suggestion.includes("Old") ? "Old Tax Regime" : "New Tax Regime";
+        recommended = result.suggestion.includes("Old") ? result.old_regime : result.new_regime;
+      }
+      
+      // Using the key from backend; if you can update the naming to "excessDeduction", that might be clearer.
+      const excessDeduction = result.excess_Deducation;
+      
+      const msg = buildRecommendationCard(recommendedName, recommended, excessDeduction);
+      const details = buildDetailsBlock(result.old_regime, result.new_regime, excessDeduction);
+      const advise = buildExcessAdviceBox(excessDeduction);
+      
+      // Display all blocks: recommendation, details, and extra advice.
+      addMessage(msg + advise + details, "bot");
+    } catch (err) {
+      console.error(err);
+      addMessage("❌ JS error: " + err.message + " " + err.stack, "bot");
+    }
   }
-}
+  
 
   function handleFormSubmit(event, type) {
     event.preventDefault();
