@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tax Advisory System</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    body {
+      background-color: #f7f9fc;
+      font-family: 'Poppins', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #222;
+      padding: 15px 30px;
+      color: #fff;
+    }
+    .navbar a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: 600;
+    }
+    .navbar a:hover {
+      color: #bbb;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      height: 100vh;
+      position: fixed;
+      top: 0;
+      left: -250px;
+      background-color: #1a1a1a;
+      padding-top: 60px;
+      transition: 0.3s;
+    }
+    .sidebar a {
+      display: block;
+      color: #ddd;
+      padding: 15px;
+      text-decoration: none;
+      font-size: 18px;
+    }
+    .sidebar a:hover {
+      background-color: #333;
+    }
+    .sidebar .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #fff;
+    }
+    .profile-section {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .profile-img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      border: 3px solid #fff;
+    }
+    .profile-name {
+      color: #fff;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+    .profile-email {
+      color: #bbb;
+      font-size: 14px;
+    }
+    /* Main Content */
+    .main-content {
+      text-align: center;
+      margin: 100px auto;
+      max-width: 800px;
+    }
+    .title {
+      font-size: 36px;
+      font-weight: 700;
+      color: #333;
+    }
+    .subtitle {
+      font-size: 20px;
+      color: #555;
+      margin-top: 10px;
+    }
+    /* Chat Container */
+    .chat-container {
+      width: 40%;
+      height: 85vh;
+      background-color: #fff;
+      display: flex;
+      flex-direction: column;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+    .chat-header {
+      background: linear-gradient(90deg, #1f1c2c, #928dab);
+      color: #fff;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+    }
+    .chat-box {
+      flex-grow: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background-color: #f4f7fc;
+      display: flex;
+      flex-direction: column;
+    }
+    .input-container {
+      display: flex;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      background-color: #fff;
+    }
+    .input-container input {
+      flex-grow: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 25px;
+      outline: none;
+      font-size: 1rem;
+    }
+    .input-container button {
+      padding: 12px 20px;
+      border: none;
+      background: linear-gradient(90deg, #1f1c2c, #928dab);
+      color: #fff;
+      cursor: pointer;
+      border-radius: 25px;
+      margin-left: 10px;
+      font-size: 1rem;
+    }
+    /* Messages styling */
+    .message {
+      margin: 10px 0;
+      padding: 12px 16px;
+      border-radius: 25px;
+      max-width: 70%;
+      word-wrap: break-word;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+    .user-message {
+      background: linear-gradient(90deg, #007bff, #3399ff);
+      color: #fff;
+      align-self: flex-end;
+    }
+    .bot-message {
+      background: #e9ecef;
+      color: #333;
+      align-self: flex-start;
+    }
+    /* Temporary Container for Partials */
+    #temp-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <div class="navbar">
+    <span id="menu-btn">&#9776; Menu</span>
+    <div>
+      <a href="{% url 'users:register' %}">Register</a>
+      <a href="{% url 'users:login' %}">Login - {{ user.username }}</a>
+    </div>
+  </div>
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <span class="close-btn" id="close-btn">&times;</span>
+    <div class="profile-section">
+      <p id="profile-name" class="profile-name">{{ user.username }}</p>
+      <p id="profile-email" class="profile-email">{{ user.email }}</p>
+      <img id="profile-img" class="profile-img" src="{{ user.profile.profile_pic.url }}" alt="User">
+    </div>
+    <a href="{% url 'home' %}">Home</a>
+    <a href="{% url 'users:dashboard' %}">Dashboard</a>
+    <a href="{% url 'users:profile' %}">Profile</a>
+    <a href="#">Settings</a>
+    <a href="#">Historical Data</a>
+    <a href="#">About</a>
+    <a href="{% url 'logout' %}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+      Logout ({{ user.username }})
+    </a>
+  </div>
+  <!-- Main Content -->
+  
+  <!-- Chat Container -->
+  <div class="chat-container">
+    <div class="chat-header">Tax Advisory AI</div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="input-container">
+      <input type="text" id="user-input" placeholder="Type your message here...">
+      <button id="send-btn">Send</button>
+    </div>
+  </div>
+  <!-- Temporary Container -->
+  <div id="temp-container"></div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const sidebar = document.getElementById("sidebar");
+      const closeBtn = document.getElementById("close-btn");
+      const menuBtn = document.getElementById("menu-btn");
+      const chatBox = document.getElementById("chat-box");
+      const inputField = document.getElementById("user-input");
+      const sendButton = document.getElementById("send-btn");
+
+      // Open Sidebar
+      if (menuBtn) {
+        menuBtn.addEventListener("click", function () {
+          sidebar.style.left = "0";
+        });
+      }
+      // Close Sidebar
+      if (closeBtn) {
+        closeBtn.addEventListener("click", function () {
+          sidebar.style.left = "-250px";
+        });
+      }
+      // Load user data from Django context
+      const profileName = document.getElementById("profile-name");
+      const profileEmail = document.getElementById("profile-email");
+      const profileImg = document.getElementById("profile-img");
+      if (profileName && profileEmail && profileImg) {
+        profileName.textContent = "{{ user.username }}";
+        profileEmail.textContent = "{{ user.email }}";
+        profileImg.src = "{{ user.profile.profile_pic.url }}";
+      }
+      // Function to append messages to chat
+      function appendMessage(text, sender, isHTML = false) {
+        const messageDiv = document.createElement("div");
+        messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
+        if (isHTML) {
+          messageDiv.innerHTML = text;
+        } else {
+          messageDiv.textContent = text;
+        }
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+      // Submit Income Detail Function
+      function submitIncomeDetail() {
+        const incomeInput = document.getElementById("income-input");
+        if (!incomeInput || incomeInput.value.trim() === "") {
+          alert("Please enter your monthly salary.");
+          return;
+        }
+        const salary = incomeInput.value.trim();
+        const incomeBox = document.getElementById("income-box");
+        incomeBox.style.display = "none";
+        appendMessage("My monthly salary is: " + salary, "user");
+        fetch("/users/chatbot/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+          body: JSON.stringify({ message: salary })
+        })
+        .then(response => response.json())
+        .then(data => appendMessage(data.response, "bot", true))
+        .catch(error => console.error("Error:", error));
+      }
+      // Function to send message to Django chatbot backend
+      function sendMessage() {
+        const message = inputField.value.trim();
+        if (message === "") return;
+        appendMessage(message, "user");
+        inputField.value = "";
+        fetch("/users/chatbot/", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
+          body: JSON.stringify({ message: message })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if(data.modal === "income_form"){
+            loadPartial("/users/get_income_form/");
+          } else {
+            appendMessage(data.response, "bot", true);
+          }
+        });
+      }
+      sendButton.addEventListener("click", sendMessage);
+      inputField.addEventListener("keypress", function (e) {
+        if (e.key === "Enter") sendMessage();
+      });
+      // Function to get CSRF token for Django requests
+      function getCSRFToken() {
+        return document.cookie.split("; ").find(row => row.startsWith("csrftoken="))?.split("=")[1];
+      }
+      // Function to load a partial into a temporary div.
+      function loadPartial(url) {
+        fetch(url)
+        .then(response => response.text())
+        .then(html => {
+          const container = document.getElementById("temp-container");
+          container.innerHTML = html;
+          container.style.display = "block";
+        })
+        .catch(error => console.error("Error loading partial:", error));
+      }
+      // Remove partial from view
+      function removePartial() {
+        const container = document.getElementById("temp-container");
+        container.innerHTML = "";
+        container.style.display = "none";
+      }
+      // Handle income form submission
+      function handleIncomeForm() {
+        const incomeInput = document.getElementById("income-input");
+        if (!incomeInput || incomeInput.value.trim() === "") {
+          alert("Please enter your monthly salary.");
+          return;
+        }
+        const salary = incomeInput.value.trim();
+        removePartial();
+        appendMessage("My monthly salary is: " + salary, "user");
+        window.incomeSalary = salary;
+        appendMessage("Is the above information correct? (yes/no)", "bot");
+      }
+    });
+  </script>
+</body>
+</html>

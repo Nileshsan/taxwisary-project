@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Tax Report - {{ temp_data.full_name }}</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            background: #fff;
+            padding: 20px 30px;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.1);
+            line-height: 1.5;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+            color: #2c3e50;
+        }
+        .header p {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 1.3em;
+            color: #34495e;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+        }
+        .data-line {
+            margin: 6px 0;
+            font-size: 1em;
+        }
+        .label {
+            font-weight: bold;
+            display: inline-block;
+            width: 180px;
+            color: #2c3e50;
+        }
+        .value {
+            display: inline-block;
+            color: #2c3e50;
+        }
+        .sub-section {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        .sub-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        .footer {
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <div class="header">
+        <h1>Tax Report</h1>
+        <p>Generated on: {{ generated_date }}</p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Personal Information</div>
+        <p class="data-line"><span class="label">Full Name:</span> <span class="value">{{ temp_data.full_name }}</span></p>
+                <p class="data-line"><span class="label">Date of Birth:</span> <span class="value">{{ temp_data.dob }}</span></p>
+        <p class="data-line"><span class="label">Phone:</span> <span class="value">{{ temp_data.phone }}</span></p>
+        <p class="data-line"><span class="label">Email:</span> <span class="value">{{ temp_data.email }}</span></p>
+        <p class="data-line"><span class="label">Address:</span> <span class="value">{{ temp_data.address }}</span></p>
+        <p class="data-line"><span class="label">Employment Type:</span> <span class="value">{{ temp_data.employment }}</span></p>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Income Details</div>
+        <p class="data-line"><span class="label">Employer Name:</span> <span class="value">{{ temp_data.employer_name }}</span></p>
+        <p class="data-line"><span class="label">TAN:</span> <span class="value">{{ temp_data.tan }}</span></p>
+        <p class="data-line"><span class="label">Salary Income:</span> <span class="value">₹{{ temp_data.salary_income|floatformat:2 }}</span></p>
+        {% if temp_data.house_rent > 0 %}
+        <p class="data-line"><span class="label">House Rent (Annual):</span> <span class="value">₹{{ temp_data.house_rent|floatformat:2 }}</span></p>
+        <p class="data-line"><span class="label">Landlord PAN:</span> <span class="value">{{ temp_data.landlord_pan }}</span></p>
+        {% endif %}
+        {% if temp_data.travel_allowance > 0 %}
+        <p class="data-line"><span class="label">Travel Allowance:</span> <span class="value">₹{{ temp_data.travel_allowance|floatformat:2 }}</span></p>
+        {% endif %}
+        {% if temp_data.other_income_source or temp_data.other_income_amount %}
+        <p class="data-line"><span class="label">Other Income Source:</span> <span class="value">{{ temp_data.other_income_source }}</span></p>
+        <p class="data-line"><span class="label">Other Income Amount:</span> <span class="value">₹{{ temp_data.other_income_amount|floatformat:2 }}</span></p>
+        {% endif %}
+    </div>
+
+    <div class="section">
+        <div class="section-title">Deductions</div>
+        
+        <div class="sub-section">
+            <div class="sub-title">Section 80C - Investments</div>
+            <p class="data-line"><span class="label">EPF:</span> <span class="value">₹{{ temp_data.deductions_80C["EPF"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Life Insurance:</span> <span class="value">₹{{ temp_data.deductions_80C["Life Insurance"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Mutual Funds:</span> <span class="value">₹{{ temp_data.deductions_80C["Mutual Funds"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">PPF:</span> <span class="value">₹{{ temp_data.deductions_80C["PPF"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">NSC:</span> <span class="value">₹{{ temp_data.deductions_80C["NSC"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Home Loan Principal:</span> <span class="value">₹{{ temp_data.deductions_80C["Home Loan Principal"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Child Tuition:</span> <span class="value">₹{{ temp_data.deductions_80C["Child Tuition"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Other 80C:</span> <span class="value">₹{{ temp_data.deductions_80C["Other 80C"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label"><strong>Total Deduction A:</strong></span> <span class="value"><strong>₹{{ temp_data.deductions_80C["Total Deduction A"]|floatformat:2 }}</strong></span></p>
+        </div>
+
+        <div class="sub-section">
+            <div class="sub-title">Section 80D - Health Insurance</div>
+            <p class="data-line"><span class="label">Self Insurance:</span> <span class="value">₹{{ temp_data.deductions_80D["Health Insurance (Self)"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Capped (Self):</span> <span class="value">₹{{ temp_data.deductions_80D["Capped (Self)"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Parents Insurance:</span> <span class="value">₹{{ temp_data.deductions_80D["Health Insurance (Parents)"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Capped (Parents):</span> <span class="value">₹{{ temp_data.deductions_80D["Capped (Parents)"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label"><strong>Total Deduction B:</strong></span> <span class="value"><strong>₹{{ temp_data.deductions_80D["Total Deduction B"]|floatformat:2 }}</strong></span></p>
+        </div>
+
+        <div class="sub-section">
+            <div class="sub-title">Section 80E - Education Loan</div>
+            <p class="data-line"><span class="label">Loan Interest:</span> <span class="value">₹{{ temp_data.deductions_80E["Education Loan Interest"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label"><strong>Deduction C:</strong></span> <span class="value"><strong>₹{{ temp_data.deductions_80E["Deduction C"]|floatformat:2 }}</strong></span></p>
+        </div>
+
+        <div class="sub-section">
+            <div class="sub-title">Section CCD(1B) - NPS Investment</div>
+            <p class="data-line"><span class="label">NPS Amount:</span> <span class="value">₹{{ temp_data.ccd_1B["NPS Amount"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label"><strong>Deduction D:</strong></span> <span class="value"><strong>₹{{ temp_data.ccd_1B["Deduction D"]|floatformat:2 }}</strong></span></p>
+        </div>
+
+        <div class="sub-section">
+            <div class="sub-title">Investment Deductions</div>
+            <p class="data-line"><span class="label">Interest on Savings:</span> <span class="value">₹{{ temp_data.investment_deductions["Interest on Savings"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Capped Savings:</span> <span class="value">₹{{ temp_data.investment_deductions["Capped Savings"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">FD Interest:</span> <span class="value">₹{{ temp_data.investment_deductions["FD Interest"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Capped FD:</span> <span class="value">₹{{ temp_data.investment_deductions["Capped FD"]|floatformat:2 }}</span></p>
+            <p class="data-line"><span class="label">Dividend Income:</span> <span class="value">₹{{ temp_data.investment_deductions["Dividend Income"]|floatformat:2 }}</span></p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>This report is generated automatically. Please verify all information.</p>
+        <p>Document ID: {{ temp_data.id }}</p>
+        <p>Generated for: {{ user.username }}</p>
+    </div>
+    </div>
+</body>
+</html>
+

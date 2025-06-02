@@ -1,0 +1,51 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Advisory</title>
+    <style>
+        body {
+            background-color: beige;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #333;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 20px;
+            background-color: #007BFF;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    {% extends 'base.html' %}
+
+    {% block title %}Home - Tax Advisory{% endblock %}
+    {% block content %}<h1>Welcome to Tax Advisory</h1>
+    <p>Your trusted platform for tax-related services.</p>
+    <a href="{% url 'user_home' %}" class="btn">Get Started</a>
+    
+    {% endblock %}
+</body>
+</html>

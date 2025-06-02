@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+  <style>
+    /* Chatbot Button & Popup */
+    .chatbot-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+    }
+    .chat-popup {
+      display: none;
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      width: 300px;
+      height: 400px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(8, 8, 8, 0.1);
+    }
+    .chat-popup textarea {
+      width: 100%;
+      height: 80px;
+    }
+    .chat-popup button {
+      width: 100%;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="flex h-screen">
+    <!-- Sidebar -->
+    <div class="bg-yellow-900 text-white w-64 p-6 space-y-4">
+      <h2 class="text-2xl font-bold">Dashboard</h2>
+      <nav>
+        <a href="{% url 'home' %}" class="block py-2 hover:bg-yellow-700 px-4 rounded">Home</a>
+        <a href="{% url 'users:profile' %}" class="block py-2 hover:bg-yellow-700 px-4 rounded">Profile</a>
+        <a href="#" class="block py-2 hover:bg-yellow-700 px-4 rounded">Settings</a>
+        <a href="#" onclick="document.getElementById('logout-form').submit();">
+          Logout ({{ user.username }})
+        </a>
+        <form id="logout-form" action="{% url 'logout' %}" method="post" style="display: none;">
+          {% csrf_token %}
+        </form>
+      </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 p-8">
+      <h1 class="text-3xl font-bold">Welcome, <span id="username">{{ user.username }}</span>!</h1>
+      
+      <div class="grid grid-cols-3 gap-4 mt-6">
+        <div class="bg-white p-6 shadow rounded-lg">
+          <h3 class="text-xl font-semibold">Total Users</h3>
+          <p class="text-2xl font-bold">0</p>
+        </div>
+        <div class="bg-white p-6 shadow rounded-lg">
+          <h3 class="text-xl font-semibold">Active Sessions</h3>
+          <p class="text-2xl font-bold">0</p>
+        </div>
+        <div class="bg-white p-6 shadow rounded-lg">
+          <h3 class="text-xl font-semibold">Documents</h3>
+          <p class="text-2xl font-bold">5</p>
+        </div>
+      </div>
+      
+      <!-- Uploaded Documents Section -->
+      <div class="mt-6 bg-white p-6 shadow rounded-lg">
+        <h3 class="text-xl font-semibold">Your Documents</h3>
+        {% if documents %}
+          {% for document in documents %}
+            <div class="mt-2">
+              <a href="{{ document.file.url }}" target="_blank" class="text-blue-500 underline">View Report</a>
+            </div>
+          {% endfor %}
+        {% else %}
+          <p>No documents available.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  
+  <!-- Chatbot Popup Button -->
+  <button class="chatbot-btn" onclick="window.location.href='{% url 'users:base' %}'">
+    Chat with us
+  </button>
+
+  <!-- Optionally, you can include your chatbot popup code below if needed -->
+  <!--<div id="chatPopup" class="chat-popup">
+    <div id="chatContent"></div>
+    <textarea id="userMessage" placeholder="Enter your message..."></textarea>
+    <button onclick="sendMessage()">Send</button>
+  </div>-->
+
+  <script>
+      async function sendMessage() {
+          const userMessage = document.getElementById('userMessage').value;
+          document.getElementById('chatContent').innerHTML += `<p><strong>You:</strong> ${userMessage}</p>`;
+  
+          const response = await fetch('/chatbot/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': '{{ csrf_token }}'
+              },
+              body: JSON.stringify({ message: userMessage })
+          });
+  
+          const data = await response.json();
+          document.getElementById('chatContent').innerHTML += `<p><strong>Bot:</strong> ${data.response}</p>`;
+  
+          document.getElementById('userMessage').value = '';
+      }
+  </script>
+</body>
+</html>

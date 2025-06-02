@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>About - Tax Advisory</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* Global Styles */
+    body {
+      font-family: 'Inter', sans-serif;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+    /* Light & Dark Mode Backgrounds */
+    [data-theme="light"] body {
+      background: linear-gradient(to bottom right, #f5f7fa, #e6ecf3);
+      color: #1f2937;
+    }
+    [data-theme="dark"] body {
+      background: linear-gradient(to bottom right, #111827, #1f2937);
+      color: #f3f4f6;
+    }
+    /* Navbar */
+    .navbar {
+      background-color: #1b1b1b;
+      padding: 0.75rem 1rem;
+    }
+    .navbar a {
+      color: #d1d5db;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+    .navbar a:hover {
+      color: #ffffff;
+    }
+    /* Content Card with glass effect */
+    .content-card {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(8px);
+      color: #01040a;
+      max-width: 50rem; /* Slightly smaller width */
+      margin: 2rem auto;
+      padding: 1.25rem; /* Reduced padding */
+      border-radius: 1.5rem;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+    [data-theme="dark"] .content-card {
+      background: rgba(31, 41, 55, 0.75);
+      color: #f3f4f6;
+    }
+    .content-card h2 {
+      color: #696767;
+    }
+    [data-theme="dark"] .content-card h2 {
+      color: #f1f5f9;
+    }
+    .content-card p,
+    .content-card li {
+      line-height: 1.6;
+      font-size: 0.95rem;
+    }
+    /* Footer */
+    .footer {
+      background-color: #1b1b1b;
+      padding: 0.75rem 1rem;
+    }
+    .footer p {
+      color: #d1d5db;
+      margin: 0;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Navbar -->
+  <nav class="navbar shadow-md">
+    <div class="max-w-7xl mx-auto px-6 flex justify-between items-center">
+      <div class="text-2xl font-bold text-white">
+        <a href="{% url 'home' %}">Tax Advisory</a>
+      </div>
+      <div class="space-x-6">
+        <a href="{% url 'home' %}" class="transition duration-300">Home</a>
+        <a href="{% url 'users:about' %}" class="transition duration-300">About</a>
+        <a href="{% url 'users:profile' %}" class="transition duration-300">Profile</a>
+        <a href="{% url 'logout' %}" class="transition duration-300">Logout</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="flex-1 max-w-7xl mx-auto px-6 py-10">
+    <div class="text-center mb-10">
+      <h1 class="text-4xl font-bold mb-3">About Tax Advisory</h1>
+      <p class="text-md">Simplifying Tax Management with a Personal Touch</p>
+    </div>
+    <div class="content-card">
+      <section class="mb-8">
+        <p class="mb-4">
+          Welcome to <strong>Tax Advisory</strong>, your trusted partner in managing tax requirements with ease and expertise.
+          Our mission is to simplify the complexities of tax filing, planning, and regime analysis while ensuring peace of mind.
+        </p>
+        <p>
+          Leveraging state-of-the-art technology, our platform provides real-time insights and personalized guidance—from our AI Chatbot to our comprehensive advisory tools.
+          We empower individuals and businesses to make smarter financial decisions with confidence.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold mb-3">Our Features</h2>
+        <ul class="list-disc list-inside space-y-2">
+          <li><strong>AI Chatbot:</strong> Get real-time assistance with personalized guidance.</li>
+          <li><strong>Regime Advisory AI:</strong> Discover the best tax regime tailored to your profile.</li>
+          <li><strong>Comprehensive Support:</strong> Streamlined tax filing, planning, and document management.</li>
+          <li><strong>Data Security:</strong> Military-grade encryption ensures your information is always safe.</li>
+          <li><strong>User Dashboard:</strong> Track your filings, reports, and advisory history in one place.</li>
+        </ul>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold mb-3">Our Journey</h2>
+        <p class="mb-4">
+          Founded in 2025, Tax Advisory emerged from a vision to democratize financial literacy and simplify tax processes.
+          What began as a student-led project has evolved into a robust platform built on passion, innovation, and customer-centric solutions.
+        </p>
+        <p>
+          Our team of experts in finance, AI, and UX design works relentlessly to make taxes less taxing for everyone.
+        </p>
+      </section>
+
+      <section class="mb-8">
+        <h2 class="text-2xl font-semibold mb-3">Why Choose Us?</h2>
+        <ul class="list-disc list-inside space-y-2">
+          <li>We simplify complexity — so you can focus on what matters.</li>
+          <li>We’re affordable, accessible, and designed for everyone.</li>
+          <li>We drive innovation with features like LLM integration and predictive advisory.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2 class="text-2xl font-semibold mb-3">Our Commitment</h2>
+        <p>
+          We are devoted to ensuring your data remains secure while delivering an intuitive, streamlined experience.
+          With innovation, integrity, and customer satisfaction at the forefront, we provide the most reliable tax management solutions.
+          Join us in shaping the future of digital tax advisory.
+        </p>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer shadow-md">
+    <div class="max-w-7xl mx-auto px-6 text-center text-sm">
+      <p>&copy; 2025 Tax Advisory. All Rights Reserved.</p>
+    </div>
+  </footer>
+</body>
+</html>

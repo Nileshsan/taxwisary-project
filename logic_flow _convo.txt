@@ -1,0 +1,266 @@
+pythonic logic:
+
+A) 
+1)  Basic Personal info 
+full name 
+PAN 
+UID
+DOB
+Contact Info
+Address
+Employment Type
+
+2) Income Details 
+Employer's Name 
+TAN
+Salary Income
+  do you want to apply for House Rent Exemption  -if yes, then what's the rent - if rent< 100000 then stop 
+                                                                                 if rent> 100000 then land lord PAN 
+                                                 -if no ,then alright
+
+      House Rent Exemption = (formula)
+      
+  
+  do you have travel Allowance for - if yes, then what's the amount 
+                                   - if no, alright
+
+     travel Allowance = (formula)
+  
+
+  do you have any other source of income - if yes, then what is it and how much you earn 
+                                         - if no, then stop
+  
+  so, proprietary Income = Salary Income -  House Rent Exemption -  travel Allowance + other income
+
+
+  
+3) let's get understanding about deductions
+  do you have EPF - if yes, then how much is amount of EPF
+                  - if no, then alright 
+ 
+  do you have life Insurance - if yes, then what is the amount of Life Insurance Premium 
+                             - if no, then alright 
+
+  do you invest in Mutual Funds - if yes, then what is the Value of MF
+                                - if no, then alright
+ 
+  do you invest Public Provision Fund - if yes , then what is the value of PPF
+                                           - if no, then alright
+ 
+  do you have National Saving Certificate - if yes, then what is the amount invested in NSC
+                                          - if no, then alright
+
+  
+  do you have home loan - if yes, then what is the amount of home loan , tenure and interest on principle 
+                        - if no, its alright 
+  
+  do you pay for child tuition fees - if yes, then what is the amount of child tuition fees
+                                    - if no, then alright 
+   
+  do you invest in any other activities which we can get deductions under 80C  - if yes, then what is the activity and amount you invested
+                                                                               -if no, then alright
+
+  So, Your Deduction_A = amount of EPF + amount of Life Insurance Premium + Value of MF + value of PPF + amount invested in NSC + amount of home loan + amount of child tuition fees + others  (section 80C)
+
+      If Deduction_A > 150000, then Deduction_A = 150000
+      If Deduction_A < 150000, then Deduction_A = Deduction_A 
+
+
+
+  do you have health insurance for self or family - if yes, then what is the amount of Premium for self and family 
+      If amount of Premium for self and family > 25000 , then Deduction_B1= 25000
+      If amount of Premium for self and family < 25000, then Deduction_B1 = Deduction_B1
+   
+  do you have health insurance for Parents - if yes, then what is the amount of Premium for Parents 
+      If amount of Premium for Parents > 50000 , then Deduction_B2= 50000
+      If amount of Premium for Parents < 50000, then Deduction_B2 = Deduction_B2
+
+  So, Your Deduction_B = Deduction_B1 + Deduction_B2 (section 80D)
+
+
+  do you have Education loan - if yes, then what is the amount of Education loan , tensure and interest on principle - what is the amount of interest paid for Education loan 
+                        - if no, its alright 
+
+  So, Your Deduction_C = amount of interest paid for Education loan (section 80E)
+
+  
+  do you invest in National Pension Scheme - if yes, then what is the amount invest in NPS
+      If amount invest in NPS > 50000, then amount invest in NPS = 50000
+      If amount invest in NPS < 50000, then amount invest in NPS = amount invest in NPS
+
+  so, Your Deduction_D = amount invest in NPS (section CCD(1B))
+
+  
+  if home loan = true , then what is the amount of interest paid on housing loan 
+      if amount of interest paid on housing loan > 200000, then amount of interest paid on housing loan = 200000
+      if amount of interest paid on housing loan < 200000, then amount of interest paid on housing loan = amount of interest paid on housing loan 
+
+  so, Deduction_H = amount of interest paid on housing loan
+    
+    Did you earn interest on savings
+       if no, then alright 
+       if yes, then what is the amount of interest you earn?
+        (extract the input from user - interest_on_savings)
+           if interest_on_savings > 10000 , then Deduction_F = 10000
+           if interest_on_savings < 10000 , then Deduction_F = interest_on_savings
+   
+     Deduction_F = min(10000, interest_on_savings)  
+
+    (Extract from user input - interest_on_savings)
+
+      Do you have FD for senior Citizen 
+        if no, then alright
+        if yes, then what is the amount of interest you earn?
+         (extract the input from user - interest_on_savings)
+           if interest_on_FD > 50000 , then Deduction_G = 50000
+           if interest_on_FD < 50000 , then Deduction_G = interest_on_savings
+
+     Deduction_G = min(50000, interest_on_FD)  
+
+     Income_on_savings = interest_on_savings + interest_on_FD
+
+
+
+  Did you earn Divident 
+       if no, then alright
+       if yes, then how much divident did you earn ?
+       Divident_income
+
+  Primary Income = proprietary Income + Income_on_savings + Divident_income
+
+
+
+B) House Property Income
+
+  How many Properties you own ?
+  
+  Are there Properties on rent ?
+      if yes, then what is the rental income ? 
+           what are the Municipal Tax and Maintenance Charges 
+      if no , then alright
+   
+  so, Rental Income = [rental income - Municipal Tax and Maintenance Charges ]
+
+  Deduction_E = [Rental Income * 3] / 10
+
+  Secondary Income = Primary Income + Rental Income
+
+
+C) Capital Gain and Other Income 
+
+ 1) did you sold any capital assets last year? 
+      if no, then alright
+      if yes, then what type of asset did you sold? 
+
+  user input: extract from user input (Real estate, stocks and Mutual Funds, Other Assets )
+      
+ 
+    
+for Real Estate:
+   was Real Estate sold before 23rd July 2024?
+     if yes, then old indexing rules apply, please provide purchase and sale details
+     if no, new indexing rules provide indexed cost details
+   
+   When was the asset purchased?
+     Based on holding period determine Long term or short term?
+      (extract from user input )
+         if short term, then please provide purchase sale deed , purchase deed as well as expense details.
+         if long term, then does the asset qualify for indexation?
+             if yes, then provide index cost details
+             if no , provide acquision and cost details 
+  
+   What is the profit made 
+   input save as Profit_A 
+(formula)
+
+
+for Stocks and Mutual Funds:
+   was it listed on stock exchange?
+      if no, provide and sale details
+      if yes, was STT paid during purchase or sale? 
+          if no, then provide purchase and sale details
+          if yes, then provide Eligible for preferential tax treatment, please provide documents 
+
+   what is the Profit made
+   input save as Profit_B
+(formula)
+
+for Other Assets:
+   was it a STT paid during purchase or sale?
+       if yes, then short-term capital gain/loss , provide purchase and sale details
+       if no, then was it held for more then 3 years?
+           if no, then short-term capital gain/loss , provide purchase and sale details
+           if yes, then long-term capital gain/loss, check indexing applicability 
+               if indexing applicable, then please provide indexed cost details
+               if indexing not applicable, then please provide acquisition and sale details
+
+   what is the Profit made
+   input save as Profit_C
+(formula)
+
+
+please provide supporting documents
+
+Documents verified Status (Employer will raise flag if okay then green )
+
+So, Capital Gain  = [Profit_A + Profit_B + Profit_C]
+
+
+
+
+
+
+
+So, Capital Gain and Other Income = Capital Gain 
+
+So, Tertiary Income = Secondary Income + Capital Gain and Other Income
+
+
+
+
+
+D) Advance Tax/ TDS(Tax deductions at the source):
+     Has TDS been deducted from salary?
+         if yes, then provide Form 16 and password of Income Tax ID
+         if no, then alright 
+
+     Any additional TDS deducted on Fixed Deposits (FDs), Interest, or Rent Payments?
+
+
+
+     Have you paid any Advance Tax or Self-Assessment Tax? 
+         if yes, then please provide Form 26AS and password of Income Tax ID
+         if no, then alright 
+
+
+
+
+E) Other Disclosures & Compliance
+       Do you hold any foreign bank account, foreign assets, or investments?
+           if yes, then provide details of foreign bank account, foreign assets, or investments
+           
+
+       
+        Have you received gifts above ₹50,000?
+            if no, then alright
+            if yes, then please provide details of gifts- amount of gift 
+                Taxable_Amount = amount of gift - 50000
+        
+        
+
+
+F) Bank Account Details for Refund 
+       please provide the Bank Name 
+       please provide the Account Number 
+       please provide the IFSC Code 
+
+
+
+
+
+
+
+
+
+
+
