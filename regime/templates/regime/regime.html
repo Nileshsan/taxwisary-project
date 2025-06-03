@@ -350,17 +350,20 @@
   };
 
   // Build the excess deduction advice box
-  const buildExcessAdviceBox = (excessDeduction) => {
+  const buildExcessAdviceBox = (recommendedName, excessDeduction) => {
+    if (recommendedName === "Old Tax Regime") {
+      return ""; // No excess deduction advice when Old Regime is recommended.
+    }
     return `
       <div class="excess-box">
         <h3>Excess Deduction Details</h3>
-        <p> Advise based on the excess deduction component:</p>
+        <p>Advise based on the excess deduction component:</p>
         ${
           excessDeduction > 0 
             ? `<p>To break even with the Old Tax Regime, an extra deduction of ₹${Number(excessDeduction).toLocaleString()} is required.</p>`
             : `<p>No extra benefit was derived from the excess deduction component.</p>`
         }
-        <p>This value is derived based on the difference between the tax values of the two regimes and the taxable income .</p>
+        <p>This value is derived based on the difference between the tax values of the two regimes and the taxable income.</p>
       </div>
     `;
   };
@@ -411,7 +414,7 @@
       
       const msg = buildRecommendationCard(recommendedName, recommended, excessDeduction);
       const details = buildDetailsBlock(result.old_regime, result.new_regime, excessDeduction);
-      const advise = buildExcessAdviceBox(excessDeduction);
+      const advise = buildExcessAdviceBox(recommendedName, excessDeduction);
       
       // Display all blocks: recommendation, details, and extra advice.
       addMessage(msg + advise + details, "bot");
