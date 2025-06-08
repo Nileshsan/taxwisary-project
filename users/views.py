@@ -238,7 +238,7 @@ def regime_ai_advice(request):
 
 
 
-
+#"____________________________________________________________________________________________________________________________________________________________________"
 
 
 
@@ -257,10 +257,6 @@ from .models import TempUserData, UserProfile, TaxReport
 from .chatbot_fsm import ChatFSM
 from django.template.loader import get_template
 from xhtml2pdf import pisa
-
-
-
-
 
 
 @csrf_exempt

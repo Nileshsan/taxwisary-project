@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirm Personal Information</title>
+</head>
+<body>
+  <h2>Confirm Your Personal Information</h2>
+  <p>Full Name: {{ personal_data.full_name }}</p>
+  <p>Date of Birth: {{ personal_data.dob }}</p>
+  <p>Phone: {{ personal_data.phone }}</p>
+  <p>Email: {{ personal_data.email }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Confirm</button>
+  </form>
+  <a href="{% url 'users:advisory_personal' %}">Go Back to Edit</a>
+</body>
+</html>

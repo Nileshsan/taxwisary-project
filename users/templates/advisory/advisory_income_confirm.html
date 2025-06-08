@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Confirm Income Details</title>
+</head>
+<body>
+  <h2>Confirm Your Income Details</h2>
+  <p>Employer Name: {{ income_data.employer_name }}</p>
+  <p>Company TAN: {{ income_data.tan }}</p>
+  <p>Monthly Salary: ₹{{ income_data.salary_income }}</p>
+  <p>HRA Claim: {{ income_data.hra }}</p>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Confirm</button>
+  </form>
+  <a href="{% url 'users:advisory_income' %}">Go Back to Edit</a>
+</body>
+</html>

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Summary & Report</title>
+</head>
+<body>
+  <h2>Summary of Your Information</h2>
+  <pre>{{ temp_data|safe }}</pre>
+  <form method="post">
+    {% csrf_token %}
+    <button type="submit">Generate Report</button>
+  </form>
+</body>
+</html>

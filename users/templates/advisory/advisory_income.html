@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Income Information</title>
+</head>
+<body>
+  <h2>Enter Your Income Details</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="employer_name">Employer Name:</label>
+    <input type="text" name="employer_name" id="employer_name" required><br>
+    <label for="tan">Company TAN:</label>
+    <input type="text" name="tan" id="tan" required><br>
+    <label for="salary_income">Monthly Salary (INR):</label>
+    <input type="number" name="salary_income" id="salary_income" step="0.01" required><br>
+    <label>Do you claim House Rent Exemption?</label>
+    <select name="hra" required>
+      <option value="">Select an option</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select><br>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

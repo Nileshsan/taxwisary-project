@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Enter Personal Information</title>
+</head>
+<body>
+  <h2>Enter Personal Information</h2>
+  <form method="post">
+    {% csrf_token %}
+    <label for="full_name">Full Name:</label>
+    <input type="text" name="full_name" id="full_name" required><br>
+    <label for="dob">Date of Birth:</label>
+    <input type="date" name="dob" id="dob" required><br>
+    <label for="phone">Phone:</label>
+    <input type="text" name="phone" id="phone" required><br>
+    <label for="email">Email:</label>
+    <input type="email" name="email" id="email" required><br>
+    <button type="submit">Submit</button>
+  </form>
+</body>
+</html>

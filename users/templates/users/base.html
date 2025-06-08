@@ -6,6 +6,8 @@
   <title>Tax Advisory System</title>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS for better form styling -->
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
   <style>
     /* Global Styles */
     body {
@@ -82,22 +84,6 @@
       color: #bbb;
       font-size: 14px;
     }
-    /* Main Content */
-    .main-content {
-      text-align: center;
-      margin: 100px auto;
-      max-width: 800px;
-    }
-    .title {
-      font-size: 36px;
-      font-weight: 700;
-      color: #333;
-    }
-    .subtitle {
-      font-size: 20px;
-      color: #555;
-      margin-top: 10px;
-    }
     /* Chat Container */
     .chat-container {
       width: 40%;
@@ -173,7 +159,7 @@
       color: #333;
       align-self: flex-start;
     }
-    /* Temporary Container for Partials */
+    /* Hide Temporary Container */
     #temp-container {
       display: none;
     }
@@ -206,8 +192,6 @@
       Logout ({{ user.username }})
     </a>
   </div>
-  <!-- Main Content -->
-  
   <!-- Chat Container -->
   <div class="chat-container">
     <div class="chat-header">Tax Advisory AI</div>
@@ -217,8 +201,9 @@
       <button id="send-btn">Send</button>
     </div>
   </div>
-  <!-- Temporary Container -->
+  <!-- Temporary Container for Forms (hidden) -->
   <div id="temp-container"></div>
+
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       const sidebar = document.getElementById("sidebar");
@@ -228,19 +213,18 @@
       const inputField = document.getElementById("user-input");
       const sendButton = document.getElementById("send-btn");
 
-      // Open Sidebar
+      // Flag to disable generic send while waiting for confirmation
+      let awaitingConfirmation = false;
+      
+      // Sidebar open/close
       if (menuBtn) {
-        menuBtn.addEventListener("click", function () {
-          sidebar.style.left = "0";
-        });
+        menuBtn.addEventListener("click", () => { sidebar.style.left = "0"; });
       }
-      // Close Sidebar
       if (closeBtn) {
-        closeBtn.addEventListener("click", function () {
-          sidebar.style.left = "-250px";
-        });
+        closeBtn.addEventListener("click", () => { sidebar.style.left = "-250px"; });
       }
-      // Load user data from Django context
+      
+      // Load user info from Django context
       const profileName = document.getElementById("profile-name");
       const profileEmail = document.getElementById("profile-email");
       const profileImg = document.getElementById("profile-img");
@@ -249,7 +233,8 @@
         profileEmail.textContent = "{{ user.email }}";
         profileImg.src = "{{ user.profile.profile_pic.url }}";
       }
-      // Function to append messages to chat
+      
+      // Utility: Append message to chat box
       function appendMessage(text, sender, isHTML = false) {
         const messageDiv = document.createElement("div");
         messageDiv.classList.add("message", sender === "user" ? "user-message" : "bot-message");
@@ -261,85 +246,380 @@
         chatBox.appendChild(messageDiv);
         chatBox.scrollTop = chatBox.scrollHeight;
       }
-      // Submit Income Detail Function
-      function submitIncomeDetail() {
-        const incomeInput = document.getElementById("income-input");
-        if (!incomeInput || incomeInput.value.trim() === "") {
-          alert("Please enter your monthly salary.");
-          return;
-        }
-        const salary = incomeInput.value.trim();
-        const incomeBox = document.getElementById("income-box");
-        incomeBox.style.display = "none";
-        appendMessage("My monthly salary is: " + salary, "user");
-        fetch("/users/chatbot/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
-          body: JSON.stringify({ message: salary })
-        })
-        .then(response => response.json())
-        .then(data => appendMessage(data.response, "bot", true))
-        .catch(error => console.error("Error:", error));
+      
+      // Helper: Render a form in the chat as a bot message
+      function renderFormInChat(formHtml, formId, submitHandler) {
+        const formContainer = document.createElement("div");
+        formContainer.classList.add("message", "bot-message");
+        formContainer.innerHTML = formHtml;
+        chatBox.appendChild(formContainer);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        document.getElementById(formId).addEventListener("submit", submitHandler);
       }
-      // Function to send message to Django chatbot backend
+      
+      // Advisory Process state machine with added Deductions section
+      const states = {
+        GREETING: 'greeting',
+        PERSONAL_FORM: 'personal_form',
+        PERSONAL_SUMMARY: 'personal_summary',
+        INCOME_FORM: 'income_form',
+        INCOME_SUMMARY: 'income_summary',
+        DEDUCTIONS_FORM: 'deductions_form',
+        DEDUCTIONS_SUMMARY: 'deductions_summary',
+        REPORT: 'report'
+      };
+      
+      let formData = {};
+      
+      function renderState(state) {
+        switch(state) {
+          case states.GREETING:
+            renderGreeting();
+            break;
+          case states.PERSONAL_FORM:
+            renderPersonalForm();
+            break;
+          case states.PERSONAL_SUMMARY:
+            renderPersonalSummary();
+            break;
+          case states.INCOME_FORM:
+            renderIncomeForm();
+            break;
+          case states.INCOME_SUMMARY:
+            renderIncomeSummary();
+            break;
+          case states.DEDUCTIONS_FORM:
+            renderDeductions();
+            break;
+          case states.DEDUCTIONS_SUMMARY:
+            renderDeductionsSummary();
+            break;
+          case states.REPORT:
+            renderReport();
+            break;
+          default:
+            appendMessage("Unknown state", "bot");
+        }
+      }
+      
+      // Step 1: Greeting & Process Explanation
+      function renderGreeting() {
+        appendMessage("Hello! Welcome to our Tax Advisory System.", "bot");
+        setTimeout(() => {
+          appendMessage("Our system will ask you a series of questions through forms to generate an educative tax report for your ITR filing.", "bot");
+          setTimeout(() => {
+            appendMessage("Let's start with your personal information.", "bot");
+            renderState(states.PERSONAL_FORM);
+          }, 1500);
+        }, 1500);
+      }
+      
+      // Step 2: Personal Information Form
+      function renderPersonalForm() {
+        const formHtml = `
+          <h3>Personal Information</h3>
+          <form id="personalForm">
+            <div class="form-group">
+              <label for="full_name">Full Name (first and last):</label>
+              <input type="text" class="form-control" id="full_name" name="full_name" placeholder="Enter your name" required>
+            </div>
+            <div class="form-group">
+              <label for="dob">Date of Birth:</label>
+              <input type="date" class="form-control" id="dob" name="dob" required>
+            </div>
+            <div class="form-group">
+              <label for="phone">Phone Number:</label>
+              <input type="text" class="form-control" id="phone" name="phone" placeholder="10-digit number" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address:</label>
+              <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+            </div>
+            <div class="form-group">
+              <label for="address">Residential Address:</label>
+              <textarea class="form-control" id="address" name="address" placeholder="Enter your address" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Submit</button>
+          </form>
+        `;
+        renderFormInChat(formHtml, "personalForm", function(e) {
+          e.preventDefault();
+          const form = e.target;
+          formData.personal = {
+            full_name: form.full_name.value,
+            dob: form.dob.value,
+            phone: form.phone.value,
+            email: form.email.value,
+            address: form.address.value
+          };
+          renderState(states.PERSONAL_SUMMARY);
+        });
+      }
+      
+      // Step 3: Personal Information Summary & Confirmation
+      function renderPersonalSummary() {
+        const p = formData.personal;
+        appendMessage("Here is the personal information you provided:", "bot", true);
+        appendMessage(`
+          <strong>Full Name:</strong> ${p.full_name}<br>
+          <strong>Date of Birth:</strong> ${p.dob}<br>
+          <strong>Phone:</strong> ${p.phone}<br>
+          <strong>Email:</strong> ${p.email}<br>
+          <strong>Address:</strong> ${p.address}
+        `, "bot", true);
+        appendMessage("Is this information correct? (Type 'yes' or 'no')", "bot");
+        waitForUserConfirmation(function(response) {
+          if (response.toLowerCase().startsWith("y")) {
+            renderState(states.INCOME_FORM);
+          } else {
+            appendMessage("Alright, let's update your personal information.", "bot");
+            renderState(states.PERSONAL_FORM);
+          }
+        });
+      }
+      
+      // Step 4: Income Details Form
+      function renderIncomeForm() {
+        const formHtml = `
+          <h3>Income Details</h3>
+          <form id="incomeForm">
+            <div class="form-group">
+              <label for="employer_name">Employer Name:</label>
+              <input type="text" class="form-control" id="employer_name" name="employer_name" placeholder="Enter employer name" required>
+            </div>
+            <div class="form-group">
+              <label for="tan">Company TAN:</label>
+              <input type="text" class="form-control" id="tan" name="tan" placeholder="e.g., ABCD12345E" required>
+            </div>
+            <div class="form-group">
+              <label for="monthly_salary">Monthly Salary (INR):</label>
+              <input type="number" class="form-control" id="monthly_salary" name="monthly_salary" step="0.01" placeholder="Enter monthly salary" required>
+            </div>
+            <div class="form-group">
+              <label>Do you claim House Rent Exemption?</label>
+              <select class="form-control" name="hra" required>
+                <option value="">Select an option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Submit</button>
+          </form>
+        `;
+        renderFormInChat(formHtml, "incomeForm", function(e) {
+          e.preventDefault();
+          const form = e.target;
+          formData.income = {
+            employer_name: form.employer_name.value,
+            tan: form.tan.value,
+            monthly_salary: form.monthly_salary.value,
+            hra: form.hra.value
+          };
+          renderState(states.INCOME_SUMMARY);
+        });
+      }
+      
+      // Step 5: Income Details Summary & Confirmation
+      function renderIncomeSummary() {
+        const i = formData.income;
+        appendMessage("Here is the income information you provided:", "bot", true);
+        appendMessage(`
+          <strong>Employer Name:</strong> ${i.employer_name}<br>
+          <strong>Company TAN:</strong> ${i.tan}<br>
+          <strong>Monthly Salary:</strong> ₹${i.monthly_salary}<br>
+          <strong>Claimed HRA:</strong> ${i.hra}
+        `, "bot", true);
+        appendMessage("Is this income information correct? (Type 'yes' or 'no')", "bot");
+        waitForUserConfirmation(function(response) {
+          if (response.toLowerCase().startsWith("y")) {
+            renderState(states.DEDUCTIONS_FORM);
+          } else {
+            appendMessage("Let's update your income details.", "bot");
+            renderState(states.INCOME_FORM);
+          }
+        });
+      }
+      
+      // Step 6: Deductions Form (A3)
+      function renderDeductions() {
+        const formHtml = `
+          <h3>Deductions & Investments</h3>
+          <form id="deductionsForm">
+            <div class="form-group">
+              <label for="epf">EPF Contribution (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="epf" name="epf" placeholder="e.g. 20000">
+            </div>
+            <div class="form-group">
+              <label for="life_insurance">Life Insurance Premium (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="life_insurance" name="life_insurance" placeholder="e.g. 15000">
+            </div>
+            <div class="form-group">
+              <label for="mf">Mutual Funds Investment (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="mf" name="mf" placeholder="e.g. 10000">
+            </div>
+            <div class="form-group">
+              <label for="ppf">PPF Value (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="ppf" name="ppf" placeholder="e.g. 12000">
+            </div>
+            <div class="form-group">
+              <label for="nsc">NSC Investment (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="nsc" name="nsc" placeholder="e.g. 8000">
+            </div>
+            <div class="form-group">
+              <label for="home_loan">Home Loan Principal (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="home_loan" name="home_loan" placeholder="e.g. 500000">
+            </div>
+            <div class="form-group">
+              <label for="tuition">Child Tuition Fees (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="tuition" name="tuition" placeholder="e.g. 10000">
+            </div>
+            <hr>
+            <div class="form-group">
+              <label for="health_self">Health Insurance for Self/Family (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="health_self" name="health_self" placeholder="e.g. 22000">
+            </div>
+            <div class="form-group">
+              <label for="health_parents">Health Insurance for Parents (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="health_parents" name="health_parents" placeholder="e.g. 48000">
+            </div>
+            <hr>
+            <div class="form-group">
+              <label for="edu_interest">Interest Paid on Education Loan (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="edu_interest" name="edu_interest" placeholder="e.g. 5000">
+            </div>
+            <div class="form-group">
+              <label for="nps">Investment in NPS (INR; max 50000):</label>
+              <input type="number" step="0.01" class="form-control" id="nps" name="nps" placeholder="e.g. 40000">
+            </div>
+            <div class="form-group">
+              <label for="loan_interest">Interest Paid on Housing Loan (INR; max 200000):</label>
+              <input type="number" step="0.01" class="form-control" id="loan_interest" name="loan_interest" placeholder="e.g. 180000">
+            </div>
+            <hr>
+            <div class="form-group">
+              <label for="savings_interest">Interest on Savings (INR; max 10000):</label>
+              <input type="number" step="0.01" class="form-control" id="savings_interest" name="savings_interest" placeholder="e.g. 8000">
+            </div>
+            <div class="form-group">
+              <label for="fd_interest">Interest on FD for Senior Citizens (INR; max 50000):</label>
+              <input type="number" step="0.01" class="form-control" id="fd_interest" name="fd_interest" placeholder="e.g. 30000">
+            </div>
+            <div class="form-group">
+              <label for="dividend">Dividend Income (INR):</label>
+              <input type="number" step="0.01" class="form-control" id="dividend" name="dividend" placeholder="e.g. 5000">
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Submit Deductions</button>
+          </form>
+        `;
+        renderFormInChat(formHtml, "deductionsForm", function(e) {
+          e.preventDefault();
+          const form = e.target;
+          formData.deductions = {
+            epf: parseFloat(form.epf.value || 0),
+            life_insurance: parseFloat(form.life_insurance.value || 0),
+            mf: parseFloat(form.mf.value || 0),
+            ppf: parseFloat(form.ppf.value || 0),
+            nsc: parseFloat(form.nsc.value || 0),
+            home_loan: parseFloat(form.home_loan.value || 0),
+            tuition: parseFloat(form.tuition.value || 0),
+            health_self: parseFloat(form.health_self.value || 0),
+            health_parents: parseFloat(form.health_parents.value || 0),
+            edu_interest: parseFloat(form.edu_interest.value || 0),
+            nps: Math.min(parseFloat(form.nps.value || 0), 50000),
+            loan_interest: Math.min(parseFloat(form.loan_interest.value || 0), 200000),
+            savings_interest: Math.min(parseFloat(form.savings_interest.value || 0), 10000),
+            fd_interest: Math.min(parseFloat(form.fd_interest.value || 0), 50000),
+            dividend: parseFloat(form.dividend.value || 0)
+          };
+          renderState(states.DEDUCTIONS_SUMMARY);
+        });
+      }
+      
+      // Step 7: Deductions Summary & Confirmation
+      function renderDeductionsSummary() {
+        const d = formData.deductions;
+        appendMessage("Here is the deductions information you provided:", "bot", true);
+        appendMessage(`
+          <strong>EPF:</strong> ₹${d.epf}<br>
+          <strong>Life Insurance:</strong> ₹${d.life_insurance}<br>
+          <strong>Mutual Funds:</strong> ₹${d.mf}<br>
+          <strong>PPF:</strong> ₹${d.ppf}<br>
+          <strong>NSC:</strong> ₹${d.nsc}<br>
+          <strong>Home Loan:</strong> ₹${d.home_loan}<br>
+          <strong>Tuition Fees:</strong> ₹${d.tuition}<br>
+          <strong>Health (Self/Family):</strong> ₹${d.health_self}<br>
+          <strong>Health (Parents):</strong> ₹${d.health_parents}<br>
+          <strong>Edu Loan Interest:</strong> ₹${d.edu_interest}<br>
+          <strong>NPS Investment:</strong> ₹${d.nps}<br>
+          <strong>Housing Loan Interest:</strong> ₹${d.loan_interest}<br>
+          <strong>Savings Interest (capped):</strong> ₹${d.savings_interest}<br>
+          <strong>FD Interest (capped):</strong> ₹${d.fd_interest}<br>
+          <strong>Dividend Income:</strong> ₹${d.dividend}
+        `, "bot", true);
+        appendMessage("Is this deductions information correct? (Type 'yes' or 'no')", "bot");
+        waitForUserConfirmation(function(response) {
+          if(response.toLowerCase().startsWith("y")) {
+            renderState(states.REPORT);
+          } else {
+            appendMessage("Let's update your deductions.", "bot");
+            renderState(states.DEDUCTIONS_FORM);
+          }
+        });
+      }
+      
+      // Step 8: Final Report
+      function renderReport() {
+        appendMessage("Thank you! Your details have been recorded.", "bot");
+        appendMessage("Your comprehensive tax report has been generated. This report is designed to help you understand your ITR filing and educate you about your tax liabilities.", "bot");
+        appendMessage("If you'd like to start over, please type 'restart'.", "bot");
+        waitForUserConfirmation(function(response) {
+          if (response.toLowerCase().startsWith("restart")) {
+            formData = {};
+            renderState(states.GREETING);
+          }
+        });
+      }
+      
+      // Utility: Wait for user confirmation via chat input.
+      function waitForUserConfirmation(callback) {
+        awaitingConfirmation = true;
+        const confirmationHandler = function(e) {
+          // If it’s a keypress event, only handle if the Enter key was pressed.
+          if (e.type === "keypress" && e.key !== "Enter") return;
+          const response = inputField.value.trim();
+          if (response !== "") {
+            appendMessage(response, "user");
+            inputField.value = "";
+            inputField.removeEventListener("keypress", confirmationHandler);
+            sendButton.removeEventListener("click", confirmationHandler);
+            awaitingConfirmation = false;
+            callback(response);
+          }
+        };
+        inputField.addEventListener("keypress", confirmationHandler, { once: true });
+        sendButton.addEventListener("click", confirmationHandler, { once: true });
+      }
+      
+      // Generic sendMessage for non-process messages.
       function sendMessage() {
+        if (awaitingConfirmation) return;
         const message = inputField.value.trim();
         if (message === "") return;
         appendMessage(message, "user");
         inputField.value = "";
-        fetch("/users/chatbot/", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-CSRFToken": getCSRFToken() },
-          body: JSON.stringify({ message: message })
-        })
-        .then(response => response.json())
-        .then(data => {
-          if(data.modal === "income_form"){
-            loadPartial("/users/get_income_form/");
-          } else {
-            appendMessage(data.response, "bot", true);
-          }
-        });
       }
       sendButton.addEventListener("click", sendMessage);
-      inputField.addEventListener("keypress", function (e) {
+      inputField.addEventListener("keypress", function(e) {
         if (e.key === "Enter") sendMessage();
       });
-      // Function to get CSRF token for Django requests
-      function getCSRFToken() {
-        return document.cookie.split("; ").find(row => row.startsWith("csrftoken="))?.split("=")[1];
-      }
-      // Function to load a partial into a temporary div.
-      function loadPartial(url) {
-        fetch(url)
-        .then(response => response.text())
-        .then(html => {
-          const container = document.getElementById("temp-container");
-          container.innerHTML = html;
-          container.style.display = "block";
-        })
-        .catch(error => console.error("Error loading partial:", error));
-      }
-      // Remove partial from view
-      function removePartial() {
-        const container = document.getElementById("temp-container");
-        container.innerHTML = "";
-        container.style.display = "none";
-      }
-      // Handle income form submission
-      function handleIncomeForm() {
-        const incomeInput = document.getElementById("income-input");
-        if (!incomeInput || incomeInput.value.trim() === "") {
-          alert("Please enter your monthly salary.");
-          return;
-        }
-        const salary = incomeInput.value.trim();
-        removePartial();
-        appendMessage("My monthly salary is: " + salary, "user");
-        window.incomeSalary = salary;
-        appendMessage("Is the above information correct? (yes/no)", "bot");
-      }
+      
+      // Start the conversation
+      renderState(states.GREETING);
     });
   </script>
+  <!-- Optionally include Bootstrap JS if needed -->
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 </body>
 </html>
