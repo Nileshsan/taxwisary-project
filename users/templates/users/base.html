@@ -266,7 +266,15 @@
         INCOME_SUMMARY: 'income_summary',
         DEDUCTIONS_FORM: 'deductions_form',
         DEDUCTIONS_SUMMARY: 'deductions_summary',
-        REPORT: 'report'
+        REPORT: 'report',
+        CAPITAL_GAINS_FORM: 'capital_gains_form',
+        CAPITAL_GAINS_SUMMARY: 'capital_gains_summary',
+        TDS_ADVANCE_TAX_FORM: 'tds_advance_tax_form',
+        TDS_ADVANCE_TAX_SUMMARY: 'tds_advance_tax_summary',
+        DISCLOSURES_FORM: 'disclosures_form',
+        DISCLOSURES_SUMMARY: 'disclosures_summary',
+        BANK_DETAILS_FORM: 'bank_details_form',
+        BANK_DETAILS_SUMMARY: 'bank_details_summary'
       };
       
       let formData = {};
@@ -296,6 +304,30 @@
             break;
           case states.REPORT:
             renderReport();
+            break;
+          case states.CAPITAL_GAINS_FORM:
+            renderCapitalGainsForm();
+            break;
+          case states.CAPITAL_GAINS_SUMMARY:
+            renderCapitalGainsSummary();
+            break;
+          case states.TDS_ADVANCE_TAX_FORM:
+            renderTDSAdvanceTaxForm();
+            break;
+          case states.TDS_ADVANCE_TAX_SUMMARY:
+            renderTDSAdvanceTaxSummary();
+            break;
+          case states.DISCLOSURES_FORM:
+            renderDisclosuresForm();
+            break;
+          case states.DISCLOSURES_SUMMARY:
+            renderDisclosuresSummary();
+            break;
+          case states.BANK_DETAILS_FORM:
+            renderBankDetailsForm();
+            break;
+          case states.BANK_DETAILS_SUMMARY:
+            renderBankDetailsSummary();
             break;
           default:
             appendMessage("Unknown state", "bot");
@@ -378,11 +410,16 @@
         });
       }
       
+
+
+
+
       // Step 4: Income Details Form
       function renderIncomeForm() {
         const formHtml = `
           <h3>Income Details</h3>
           <form id="incomeForm">
+            <!-- Existing employer section -->
             <div class="form-group">
               <label for="employer_name">Employer Name:</label>
               <input type="text" class="form-control" id="employer_name" name="employer_name" placeholder="Enter employer name" required>
@@ -391,44 +428,342 @@
               <label for="tan">Company TAN:</label>
               <input type="text" class="form-control" id="tan" name="tan" placeholder="e.g., ABCD12345E" required>
             </div>
+            
+            <h4 class="mt-4">Salary Breakdown</h4>
+            <!-- Existing salary fields -->
             <div class="form-group">
-              <label for="monthly_salary">Monthly Salary (INR):</label>
-              <input type="number" class="form-control" id="monthly_salary" name="monthly_salary" step="0.01" placeholder="Enter monthly salary" required>
+              <label for="gross_salary">Gross Salary (Annual):</label>
+              <input type="number" class="form-control" id="gross_salary" name="gross_salary" 
+                placeholder="Enter annual gross salary" required>
             </div>
             <div class="form-group">
-              <label>Do you claim House Rent Exemption?</label>
-              <select class="form-control" name="hra" required>
+              <label for="base_pay">Base Pay (Annual):</label>
+              <input type="number" class="form-control" id="base_pay" name="base_pay" 
+                placeholder="Enter annual base pay" required>
+            </div>
+
+            <!-- New salary components -->
+            <div class="form-group">
+              <label for="special_allowance">Special Allowance (Annual):</label>
+              <input type="number" class="form-control" id="special_allowance" name="special_allowance" 
+                placeholder="Enter special allowance">
+            </div>
+            <div class="form-group">
+              <label for="pf_contribution">PF Contribution (Annual):</label>
+              <input type="number" class="form-control" id="pf_contribution" name="pf_contribution" 
+                placeholder="Enter PF contribution">
+            </div>
+
+            <!-- LTA Section -->
+            <div class="form-group">
+              <label>Do you receive LTA?</label>
+              <select class="form-control" name="has_lta" id="has_lta" required>
                 <option value="">Select an option</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
               </select>
             </div>
-            <button type="submit" class="btn btn-success btn-block">Submit</button>
+            <div id="ltaDetails" style="display:none;">
+              <div class="form-group">
+                <label for="lta_received">LTA Received (Annual):</label>
+                <input type="number" class="form-control" id="lta_received" name="lta_received" 
+                  placeholder="Enter annual LTA received">
+              </div>
+              <div class="form-group">
+                <label>Did you travel during the assessment year?</label>
+                <select class="form-control" name="lta_travel" id="lta_travel">
+                  <option value="">Select an option</option>
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div id="travelDetails" style="display:none;">
+                <div class="form-group">
+                  <label for="travel_expense">Travel Expense Amount:</label>
+                  <input type="number" class="form-control" id="travel_expense" name="travel_expense" 
+                    placeholder="Enter travel expense">
+                </div>
+              </div>
+            </div>
+
+            <!-- Existing HRA section -->
+            <div class="form-group">
+              <label for="hra_received">HRA Received (Annual):</label>
+              <input type="number" class="form-control" id="hra_received" name="hra_received" 
+                placeholder="Enter annual HRA received">
+            </div>
+            <!-- Existing rent details -->
+            <div class="form-group">
+              <label>Do you pay rent?</label>
+              <select class="form-control" name="pays_rent" id="pays_rent" required>
+                <option value="">Select an option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>            <div id="rentDetails" style="display:none;">
+              <div class="form-group">
+                <label for="monthly_rent">Monthly Rent Paid:</label>
+                <input type="number" class="form-control" id="monthly_rent" name="monthly_rent" 
+                  placeholder="Enter monthly rent" oninput="checkRentAmount(this)">
+              </div>
+              <div class="form-group" id="landlordPanGroup" style="display:none;">
+                <label for="landlord_pan">Landlord's PAN:</label>
+                <input type="text" class="form-control" id="landlord_pan" name="landlord_pan" 
+                  placeholder="Enter landlord's PAN" maxlength="10" pattern="[A-Z]{5}[0-9]{4}[A-Z]{1}">
+                <small class="text-info">Required when annual rent exceeds ₹1,00,000</small>
+              </div>
+              <div class="form-group">
+                <label for="city_type">City Type:</label>
+                <select class="form-control" name="city_type" id="city_type">
+                  <option value="metro">Metro (50% of Basic)</option>
+                  <option value="non_metro">Non-Metro (40% of Basic)</option>
+                </select>
+              </div>
+            </div>            
+            <!-- Replace the Other Income Sources section with this: -->
+            <!-- Other Income Sources -->
+            <h4 class="mt-4">Additional Income Sources</h4>
+            <div class="form-group">
+              <label>Do you have additional sources of income?</label>
+              <select class="form-control" name="has_other_income" id="has_other_income" required>
+                <option value="">Select an option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div id="otherIncomeDetails" style="display:none;">
+              <div id="customIncomeContainer">
+                <div class="form-group">
+                  <div class="custom-income-entry">
+                    <label>Income Source and Amount:</label>
+                    <div class="form-row">
+                      <div class="col">
+                        <input type="text" class="form-control" placeholder="Source (e.g., Freelancing)" 
+                          name="custom_income_source[]">
+                      </div>
+                      <div class="col">
+                        <input type="number" class="form-control" placeholder="Amount" 
+                          name="custom_income_amount[]">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="addCustomIncome">
+                  + Add Another Income Source
+                </button>
+              </div>
+            </div>
+            <div id="otherIncomeDetails" style="display:none;">
+              <div id="customIncomeContainer">
+                <div class="form-group">
+                  <div class="custom-income-entry">
+                    <label>Income Source and Amount:</label>
+                    <div class="form-row">
+                      <div class="col">
+                        <input type="text" class="form-control" placeholder="Source (e.g., Freelancing)" 
+                          name="custom_income_source[]">
+                      </div>
+                      <div class="col">
+                        <input type="number" class="form-control" placeholder="Amount" 
+                          name="custom_income_amount[]">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-primary mt-2" id="addCustomIncome">
+                  + Add Another Income Source
+                </button>
+              </div>
+            </div>
+
+
+            <!-- House Property Income Section -->
+            <h4 class="mt-4">House Property Income</h4>
+            <div class="form-group">
+              <label for="num_properties">Number of Properties Owned:</label>
+              <input type="number" class="form-control" id="num_properties" name="num_properties" min="0" placeholder="Enter number of properties">
+            </div>
+            
+            <div class="form-group">
+              <label>Do you have Properties on Rent?</label>
+              <select class="form-control" name="has_rental" id="has_rental" required>
+                <option value="">Select an option</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+
+            <div id="rentalDetails" style="display:none;">
+              <div class="form-group">
+                <label for="rental_income">Annual Rental Income:</label>
+                <input type="number" class="form-control" id="rental_income" name="rental_income" placeholder="Enter annual rental income">
+              </div>
+              <div class="form-group">
+                <label for="municipal_tax">Municipal Tax and Maintenance Charges:</label>
+                <input type="number" class="form-control" id="municipal_tax" name="municipal_tax" placeholder="Enter annual charges">
+              </div>
+            </div>
+
+            </div>
+            <button type="submit" class="btn btn-success btn-block">Calculate & Submit</button>
           </form>
         `;
-        renderFormInChat(formHtml, "incomeForm", function(e) {
+
+        renderFormInChat(formHtml, "incomeForm", handleIncomeFormSubmit);
+
+        // Add event listeners for showing/hiding sections
+        document.getElementById('pays_rent').addEventListener('change', function(e) {
+          document.getElementById('rentDetails').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
+
+        document.getElementById('has_lta').addEventListener('change', function(e) {
+          document.getElementById('ltaDetails').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
+
+        document.getElementById('lta_travel').addEventListener('change', function(e) {
+          document.getElementById('travelDetails').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
+
+        document.getElementById('has_other_income').addEventListener('change', function(e) {
+          document.getElementById('otherIncomeDetails').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
+
+        document.getElementById('has_rental').addEventListener('change', function(e) {
+          document.getElementById('rentalDetails').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        });
+
+        function handleIncomeFormSubmit(e) {
           e.preventDefault();
           const form = e.target;
+          
+          // Get base form values
+          const grossSalary = parseFloat(form.gross_salary.value) || 0;
+          const basePay = parseFloat(form.base_pay.value) || 0;
+          const specialAllowance = parseFloat(form.special_allowance.value) || 0;
+          const pfContribution = parseFloat(form.pf_contribution.value) || 0;
+          
+          // Get LTA details
+          const hasLTA = form.has_lta.value === 'yes';
+          const ltaReceived = parseFloat(form.lta_received.value) || 0;
+          const ltaTravelExpense = parseFloat(form.travel_expense.value) || 0;
+          const ltaExemption = hasLTA && form.lta_travel.value === 'yes' ? 
+            Math.min(ltaReceived, ltaTravelExpense) : 0;
+
+          // Get HRA details
+          const hraReceived = parseFloat(form.hra_received.value) || 0;
+          const monthlyRent = parseFloat(form.monthly_rent.value) || 0;
+          const paysRent = form.pays_rent.value === 'yes';
+          const cityType = form.city_type.value;
+          
+          // Calculate HRA exemption
+          let hraExemption = 0;
+          let landlordPan = '';
+          if (paysRent) {
+            const annualRent = monthlyRent * 12;
+            const cityPercent = cityType === 'metro' ? 0.5 : 0.4;
+            const actualHRA = hraReceived;
+            const basicPercent = basePay * cityPercent;
+            const rentMinusBasic = annualRent - (basePay * 0.1);
+            hraExemption = Math.min(
+              actualHRA,
+              basicPercent,
+              rentMinusBasic > 0 ? rentMinusBasic : 0
+            );
+            if (annualRent > 100000) {
+              landlordPan = form.landlord_pan.value;
+            }
+          }
+
+          // Get other income details
+          const hasOtherIncome = form.has_other_income.value === 'yes';
+          const customIncomeSources = hasOtherIncome ? Array.from(form.querySelectorAll('.custom-income-entry')).map(entry => ({
+            source: entry.querySelector('[name="custom_income_source[]"]').value,
+            amount: parseFloat(entry.querySelector('[name="custom_income_amount[]"]').value) || 0
+          })).filter(income => income.source && income.amount > 0) : [];
+
+          // Get rental property details
+          const hasRental = form.has_rental.value === 'yes';
+          let rentalIncome = 0;
+          let netRentalIncome = 0;
+          let standardDeduction = 0;
+
+          if (hasRental) {
+            const rentalAmount = parseFloat(form.rental_income.value) || 0;
+            const municipalTax = parseFloat(form.municipal_tax.value) || 0;
+            rentalIncome = rentalAmount;
+            netRentalIncome = rentalAmount - municipalTax;
+            standardDeduction = (netRentalIncome * 0.3); // 30% standard deduction
+          }
+
+          // Update formData
           formData.income = {
             employer_name: form.employer_name.value,
             tan: form.tan.value,
-            monthly_salary: form.monthly_salary.value,
-            hra: form.hra.value
+            gross_salary: grossSalary,
+            base_pay: basePay,
+            special_allowance: specialAllowance,
+            pf_contribution: pfContribution,
+            has_lta: hasLTA,
+            lta_received: ltaReceived,
+            lta_exemption: ltaExemption,
+            hra_received: hraReceived,
+            pays_rent: paysRent,
+            monthly_rent: monthlyRent,
+            city_type: cityType,
+            hra_exemption: hraExemption,
+            has_other_income: hasOtherIncome,
+            custom_income_sources: customIncomeSources,
+            landlord_pan: landlordPan,
+            num_properties: parseInt(form.num_properties.value) || 0,
+            has_rental: hasRental,
+            rental_income: rentalIncome,
+            municipal_tax: hasRental ? parseFloat(form.municipal_tax.value) || 0 : 0,
+            net_rental_income: netRentalIncome,
+            rental_standard_deduction: standardDeduction,
+            total_rental_income: netRentalIncome - standardDeduction
           };
+          
           renderState(states.INCOME_SUMMARY);
-        });
+        }
       }
-      
-      // Step 5: Income Details Summary & Confirmation
+
       function renderIncomeSummary() {
         const i = formData.income;
-        appendMessage("Here is the income information you provided:", "bot", true);
+        appendMessage("Here is your income information:", "bot", true);
         appendMessage(`
           <strong>Employer Name:</strong> ${i.employer_name}<br>
           <strong>Company TAN:</strong> ${i.tan}<br>
-          <strong>Monthly Salary:</strong> ₹${i.monthly_salary}<br>
-          <strong>Claimed HRA:</strong> ${i.hra}
+          <strong>Gross Salary (Annual):</strong> ₹${i.gross_salary.toLocaleString()}<br>
+          <strong>Base Pay (Annual):</strong> ₹${i.base_pay.toLocaleString()}<br>
+          <strong>Special Allowance:</strong> ₹${i.special_allowance.toLocaleString()}<br>
+          <strong>PF Contribution:</strong> ₹${i.pf_contribution.toLocaleString()}<br>
+          ${i.has_lta ? `
+          <strong>LTA Received:</strong> ₹${i.lta_received.toLocaleString()}<br>
+          <strong>LTA Exemption:</strong> ₹${i.lta_exemption.toLocaleString()}<br>
+          ` : ''}
+          <strong>HRA Received:</strong> ₹${i.hra_received.toLocaleString()}<br>          ${i.pays_rent ? `
+          <strong>Monthly Rent:</strong> ₹${i.monthly_rent.toLocaleString()}<br>
+          ${i.landlord_pan ? `<strong>Landlord's PAN:</strong> ${i.landlord_pan}<br>` : ''}
+          <strong>City Type:</strong> ${i.city_type === 'metro' ? 'Metro' : 'Non-Metro'}<br>
+          <strong>HRA Exemption:</strong> ₹${i.hra_exemption.toLocaleString()}<br>
+          ` : ''}<strong>Taxable HRA:</strong> ₹${(i.hra_received - i.hra_exemption).toLocaleString()}<br>
+          ${i.has_rental ? `
+          <h4>House Property Income</h4>
+          <strong>Number of Properties:</strong> ${i.num_properties}<br>
+          <strong>Gross Rental Income:</strong> ₹${i.rental_income.toLocaleString()}<br>
+          <strong>Municipal Tax & Maintenance:</strong> ₹${i.municipal_tax.toLocaleString()}<br>
+          <strong>Net Rental Income:</strong> ₹${i.net_rental_income.toLocaleString()}<br>
+          <strong>Standard Deduction (30%):</strong> ₹${i.rental_standard_deduction.toLocaleString()}<br>
+          <strong>Total Income from House Property:</strong> ₹${i.total_rental_income.toLocaleString()}<br>
+          ` : ''}
+          ${i.has_other_income ? `
+          <h4>Additional Income Sources</h4>
+          ${i.custom_income_sources.map(income => 
+            `- ${income.source}: ₹${income.amount.toLocaleString()}<br>`
+          ).join('')}
+          ` : ''}
         `, "bot", true);
+        
         appendMessage("Is this income information correct? (Type 'yes' or 'no')", "bot");
         waitForUserConfirmation(function(response) {
           if (response.toLowerCase().startsWith("y")) {
@@ -438,41 +773,78 @@
             renderState(states.INCOME_FORM);
           }
         });
-      }
+      }      
       
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
       // Step 6: Deductions Form (A3)
       function renderDeductions() {
         const formHtml = `
           <h3>Deductions & Investments</h3>
           <form id="deductionsForm">
+            <!-- Section 80C, 80CCC, 80CCD(1) - Combined limit of ₹1,50,000 -->
+            <h4>Section 80C/80CCC/80CCD(1) Deductions (Combined limit: ₹1,50,000)</h4>
             <div class="form-group">
-              <label for="epf">EPF Contribution (INR):</label>
+              <label for="epf">EPF Contribution (80C):</label>
               <input type="number" step="0.01" class="form-control" id="epf" name="epf" placeholder="e.g. 20000">
             </div>
             <div class="form-group">
-              <label for="life_insurance">Life Insurance Premium (INR):</label>
+              <label for="life_insurance">Life Insurance Premium (80C):</label>
               <input type="number" step="0.01" class="form-control" id="life_insurance" name="life_insurance" placeholder="e.g. 15000">
             </div>
             <div class="form-group">
-              <label for="mf">Mutual Funds Investment (INR):</label>
+              <label for="mf">ELSS - Mutual Funds Investment (80C):</label>
               <input type="number" step="0.01" class="form-control" id="mf" name="mf" placeholder="e.g. 10000">
             </div>
             <div class="form-group">
-              <label for="ppf">PPF Value (INR):</label>
+              <label for="ppf">PPF Investment (80C):</label>
               <input type="number" step="0.01" class="form-control" id="ppf" name="ppf" placeholder="e.g. 12000">
             </div>
             <div class="form-group">
-              <label for="nsc">NSC Investment (INR):</label>
+              <label for="nsc">NSC Investment (80C):</label>
               <input type="number" step="0.01" class="form-control" id="nsc" name="nsc" placeholder="e.g. 8000">
             </div>
             <div class="form-group">
-              <label for="home_loan">Home Loan Principal (INR):</label>
-              <input type="number" step="0.01" class="form-control" id="home_loan" name="home_loan" placeholder="e.g. 500000">
+              <label for="home_loan">Home Loan Principal Repayment (80C):</label>
+              <input type="number" step="0.01" class="form-control" id="home_loan" name="home_loan" placeholder="e.g. 50000">
             </div>
             <div class="form-group">
-              <label for="tuition">Child Tuition Fees (INR):</label>
+              <label for="tuition">Children Tuition Fees (80C):</label>
               <input type="number" step="0.01" class="form-control" id="tuition" name="tuition" placeholder="e.g. 10000">
             </div>
+            <div class="form-group">
+              <label for="pension_80ccc">Pension Plan Premium (80CCC):</label>
+              <input type="number" step="0.01" class="form-control" id="pension_80ccc" name="pension_80ccc" placeholder="e.g. 10000">
+            </div>
+            <div class="form-group">
+              <label for="nps_80ccd1">NPS Contribution - Self (80CCD-1):</label>
+              <input type="number" step="0.01" class="form-control" id="nps_80ccd1" name="nps_80ccd1" placeholder="e.g. 10000">
+            </div>
+            <div id="total80c" class="alert alert-info">
+              Total Section 80C/CCC/CCD(1) deductions: ₹0 (Max: ₹1,50,000)
+            </div>
+
+
+
             <hr>
             <div class="form-group">
               <label for="health_self">Health Insurance for Self/Family (INR):</label>
@@ -483,6 +855,9 @@
               <input type="number" step="0.01" class="form-control" id="health_parents" name="health_parents" placeholder="e.g. 48000">
             </div>
             <hr>
+
+
+
             <div class="form-group">
               <label for="edu_interest">Interest Paid on Education Loan (INR):</label>
               <input type="number" step="0.01" class="form-control" id="edu_interest" name="edu_interest" placeholder="e.g. 5000">
@@ -499,22 +874,44 @@
             <div class="form-group">
               <label for="savings_interest">Interest on Savings (INR; max 10000):</label>
               <input type="number" step="0.01" class="form-control" id="savings_interest" name="savings_interest" placeholder="e.g. 8000">
-            </div>
+            </div>            
             <div class="form-group">
               <label for="fd_interest">Interest on FD for Senior Citizens (INR; max 50000):</label>
               <input type="number" step="0.01" class="form-control" id="fd_interest" name="fd_interest" placeholder="e.g. 30000">
             </div>
-            <div class="form-group">
-              <label for="dividend">Dividend Income (INR):</label>
-              <input type="number" step="0.01" class="form-control" id="dividend" name="dividend" placeholder="e.g. 5000">
-            </div>
             <button type="submit" class="btn btn-success btn-block">Submit Deductions</button>
           </form>
-        `;
+        `;  
+        
+        // Add event listeners for 80C calculations
+        document.querySelectorAll('#deductionsForm input[type="number"]').forEach(input => {
+          input.addEventListener('input', calculate80CTotal);
+        });
+
+        function calculate80CTotal() {
+          const form = document.getElementById('deductionsForm');
+          const section80CFields = [
+            'epf', 'life_insurance', 'mf', 'ppf', 'nsc', 
+            'home_loan', 'tuition', 'pension_80ccc', 'nps_80ccd1'
+          ];
+          
+          let total = 0;
+          section80CFields.forEach(field => {
+            total += parseFloat(form[field].value || 0);
+          });
+          
+          const maxLimit = 150000;
+          const totalDiv = document.getElementById('total80c');
+          totalDiv.innerHTML = `Total Section 80C/CCC/CCD(1) deductions: ₹${total.toLocaleString()} 
+            ${total > maxLimit ? '<br><strong class="text-danger">Exceeds maximum limit of ₹1,50,000</strong>' : ''}`;
+          totalDiv.className = `alert ${total > maxLimit ? 'alert-warning' : 'alert-info'}`;
+        }
+
         renderFormInChat(formHtml, "deductionsForm", function(e) {
           e.preventDefault();
           const form = e.target;
           formData.deductions = {
+            // Section 80C, 80CCC, 80CCD(1)
             epf: parseFloat(form.epf.value || 0),
             life_insurance: parseFloat(form.life_insurance.value || 0),
             mf: parseFloat(form.mf.value || 0),
@@ -522,14 +919,15 @@
             nsc: parseFloat(form.nsc.value || 0),
             home_loan: parseFloat(form.home_loan.value || 0),
             tuition: parseFloat(form.tuition.value || 0),
+            pension_80ccc: parseFloat(form.pension_80ccc.value || 0),
+            nps_80ccd1: parseFloat(form.nps_80ccd1.value || 0),
             health_self: parseFloat(form.health_self.value || 0),
             health_parents: parseFloat(form.health_parents.value || 0),
             edu_interest: parseFloat(form.edu_interest.value || 0),
             nps: Math.min(parseFloat(form.nps.value || 0), 50000),
-            loan_interest: Math.min(parseFloat(form.loan_interest.value || 0), 200000),
+            loan_interest: Math.min(parseFloat(form.loan_interest.value || 0), 200000),            
             savings_interest: Math.min(parseFloat(form.savings_interest.value || 0), 10000),
-            fd_interest: Math.min(parseFloat(form.fd_interest.value || 0), 50000),
-            dividend: parseFloat(form.dividend.value || 0)
+            fd_interest: Math.min(parseFloat(form.fd_interest.value || 0), 50000)
           };
           renderState(states.DEDUCTIONS_SUMMARY);
         });
@@ -538,47 +936,1535 @@
       // Step 7: Deductions Summary & Confirmation
       function renderDeductionsSummary() {
         const d = formData.deductions;
-        appendMessage("Here is the deductions information you provided:", "bot", true);
+        
+        // Calculate total 80C/CCC/CCD(1) deductions
+        const section80CTotal = (
+          d.epf + d.life_insurance + d.mf + d.ppf + d.nsc + 
+          d.home_loan + d.tuition + d.pension_80ccc + d.nps_80ccd1
+        );
+        const maxLimit = 150000;
+          appendMessage("Here is your deductions and investments information:", "bot", true);
         appendMessage(`
-          <strong>EPF:</strong> ₹${d.epf}<br>
-          <strong>Life Insurance:</strong> ₹${d.life_insurance}<br>
-          <strong>Mutual Funds:</strong> ₹${d.mf}<br>
-          <strong>PPF:</strong> ₹${d.ppf}<br>
-          <strong>NSC:</strong> ₹${d.nsc}<br>
-          <strong>Home Loan:</strong> ₹${d.home_loan}<br>
-          <strong>Tuition Fees:</strong> ₹${d.tuition}<br>
-          <strong>Health (Self/Family):</strong> ₹${d.health_self}<br>
-          <strong>Health (Parents):</strong> ₹${d.health_parents}<br>
-          <strong>Edu Loan Interest:</strong> ₹${d.edu_interest}<br>
+          <h4>Section 80C/80CCC/80CCD(1) Deductions</h4>
+          <strong>EPF Contribution (80C):</strong> ₹${d.epf.toLocaleString()}<br>
+          <strong>Life Insurance Premium (80C):</strong> ₹${d.life_insurance.toLocaleString()}<br>
+          <strong>ELSS - Mutual Funds (80C):</strong> ₹${d.mf.toLocaleString()}<br>
+          <strong>PPF Investment (80C):</strong> ₹${d.ppf.toLocaleString()}<br>
+          <strong>NSC Investment (80C):</strong> ₹${d.nsc.toLocaleString()}<br>
+          <strong>Home Loan Principal (80C):</strong> ₹${d.home_loan.toLocaleString()}<br>
+          <strong>Tuition Fees (80C):</strong> ₹${d.tuition.toLocaleString()}<br>
+          <strong>Pension Plan Premium (80CCC):</strong> ₹${d.pension_80ccc.toLocaleString()}<br>
+          <strong>NPS Contribution - Self (80CCD-1):</strong> ₹${d.nps_80ccd1.toLocaleString()}<br>
+          <strong>Total 80C/CCC/CCD(1) Deductions:</strong> ₹${section80CTotal.toLocaleString()}
+          ${section80CTotal > maxLimit ? '<br><strong class="text-danger">Note: Total exceeds maximum limit of ₹1,50,000</strong>' : ''}<br>
+          <h4>Other Deductions</h4>
+          <strong>Health Insurance - Self/Family:</strong> ₹${d.health_self}<br>
+          <strong>Health Insurance - Parents:</strong> ₹${d.health_parents}<br>
+          <strong>Education Loan Interest:</strong> ₹${d.edu_interest}<br>
           <strong>NPS Investment:</strong> ₹${d.nps}<br>
           <strong>Housing Loan Interest:</strong> ₹${d.loan_interest}<br>
-          <strong>Savings Interest (capped):</strong> ₹${d.savings_interest}<br>
-          <strong>FD Interest (capped):</strong> ₹${d.fd_interest}<br>
-          <strong>Dividend Income:</strong> ₹${d.dividend}
+          <strong>Savings Account Interest:</strong> ₹${d.savings_interest}<br>
+          <strong>Fixed Deposit Interest (Senior Citizens):</strong> ₹${d.fd_interest}
         `, "bot", true);
+        
         appendMessage("Is this deductions information correct? (Type 'yes' or 'no')", "bot");
         waitForUserConfirmation(function(response) {
           if(response.toLowerCase().startsWith("y")) {
-            renderState(states.REPORT);
+            appendMessage("Great! Let's now collect information about your capital gains and dividend income.", "bot");
+            renderState(states.CAPITAL_GAINS_FORM);
           } else {
-            appendMessage("Let's update your deductions.", "bot");
+            appendMessage("Let's update your deductions information.", "bot");
             renderState(states.DEDUCTIONS_FORM);
           }
         });
       }
+
+
+      // Helper functions for capital gains calculations
+  function calculateRealEstateProfit(form) {
+    if (!form.real_estate?.checked) return 0;
+
+    const rePurchasePrice = parseFloat(form.re_purchase_price?.value) || 0;
+    const reSalePrice = parseFloat(form.re_sale_price?.value) || 0;
+    const reExpenses = parseFloat(form.re_expenses?.value) || 0;
+    
+    let profit = reSalePrice - rePurchasePrice - reExpenses;
+    
+    const purchaseDate = new Date(form.re_purchase_date?.value);
+    const saleDate = new Date(form.re_sale_date?.value);
+    const holdingPeriod = (saleDate - purchaseDate) / (1000 * 60 * 60 * 24 * 365);
+    
+    if (holdingPeriod > 2) {
+      profit *= form.re_sold_before_july?.value === 'yes' ? 0.8 : 0.9;
+    }
+    
+    return profit;
+  }
+
+  function calculateStocksMFProfit(form) {
+    if (!form.stocks_mf?.checked) return 0;
+
+    const purchasePrice = parseFloat(form.stock_purchase_price?.value) || 0;
+    const salePrice = parseFloat(form.stock_sale_price?.value) || 0;
+    let profit = salePrice - purchasePrice;
+    
+    if (form.stock_listed?.value === 'yes' && form.stock_stt_paid?.value === 'yes') {
+      profit *= 0.85;
+    }
+    
+    return profit;
+  }
+
+  function calculateOtherAssetsProfit(form) {
+    if (!form.other_assets?.checked) return 0;
+
+    const purchasePrice = parseFloat(form.other_purchase_price?.value) || 0;
+    const salePrice = parseFloat(form.other_sale_price?.value) || 0;
+    let profit = salePrice - purchasePrice;
+    
+    const purchaseDate = new Date(form.other_purchase_date?.value);
+    const saleDate = new Date(form.other_sale_date?.value);
+    const holdingPeriod = (saleDate - purchaseDate) / (1000 * 60 * 60 * 24 * 365);
+    
+    if (form.other_stt_paid?.value === 'yes') {
+      profit *= 0.85;
+    } else if (holdingPeriod > 3) {
+      profit *= 0.8;
+    }
+    
+    return profit;
+  }
+
+  function initializeFormEventListeners() {
+    // Capital gains section visibility
+    const soldAssetsSelect = document.getElementById('sold_capital_assets');
+    if (soldAssetsSelect) {
+      soldAssetsSelect.addEventListener('change', function(e) {
+        const assetTypeSection = document.getElementById('assetTypeSection');
+        if (assetTypeSection) {
+          assetTypeSection.style.display = e.target.value === 'yes' ? 'block' : 'none';
+        }
+      });
+    }
+
+    // Asset type checkboxes
+    document.querySelectorAll('input[name="asset_type"]').forEach(checkbox => {
+      checkbox.addEventListener('change', function() {
+        const sections = {
+          'real_estate': 'realEstateSection',
+          'stocks_mf': 'stocksMFSection',
+          'other_assets': 'otherAssetsSection'
+        };
+        const section = document.getElementById(sections[this.value]);
+        if (section) {
+          section.style.display = this.checked ? 'block' : 'none';
+        }
+      });
+    });
+
+    // Dividend section visibility
+    const hasDividendSelect = document.getElementById('has_dividend');
+    if (hasDividendSelect) {
+      hasDividendSelect.addEventListener('change', function(e) {
+        const dividendSection = document.getElementById('dividendSection');
+        if (dividendSection) {
+          dividendSection.style.display = e.target.value === 'yes' ? 'block' : 'none';
+        }
+      });
+    }
+
+    // Dividend source section visibility
+    const dividendSourceSelect = document.getElementById('dividend_source');
+    if (dividendSourceSelect) {
+      dividendSourceSelect.addEventListener('change', function(e) {
+        const value = e.target.value;
+        const domesticSection = document.getElementById('domesticDividendSection');
+        const internationalSection = document.getElementById('internationalDividendSection');
+        
+        if (domesticSection) {
+          domesticSection.style.display = (value === 'domestic' || value === 'both') ? 'block' : 'none';
+        }
+        if (internationalSection) {
+          internationalSection.style.display = (value === 'international' || value === 'both') ? 'block' : 'none';
+        }
+      });
+    }
+  }
+
+  function renderCapitalGainsForm() {
+    const formHtml = `
+      <h3>Capital Gains & Dividend Income</h3>
+      <form id="capitalGainsForm">
+        <!-- Dividend Income Section -->
+        <div class="form-group">
+          <label for="has_dividend">Did you receive any dividend income?</label>
+          <select class="form-control" id="has_dividend" name="has_dividend" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="dividendSection" style="display: none">
+          <h4>Dividend Income</h4>
+          <div class="form-group">
+            <label for="dividend_source">Source of Dividends:</label>
+            <select class="form-control" id="dividend_source" name="dividend_source">
+              <option value="">Please select</option>
+              <option value="domestic">Domestic Companies Only</option>
+              <option value="international">International Companies Only</option>
+              <option value="both">Both Domestic and International</option>
+            </select>
+          </div>
+          
+          <div id="domesticDividendSection" style="display: none">
+            <div class="form-group">
+              <label for="domestic_dividend">Total Domestic Dividend Income (₹):</label>
+              <input type="number" class="form-control" id="domestic_dividend" name="domestic_dividend">
+              <small class="text-muted">Note: 10% tax on amount exceeding ₹10 lakhs</small>
+            </div>
+          </div>
+
+          <div id="internationalDividendSection" style="display: none">
+            <div class="form-group">
+              <label for="international_dividend">Total International Dividend Income (₹):</label>
+              <input type="number" class="form-control" id="international_dividend" name="international_dividend">
+              <small class="text-muted">Note: 20% tax on amount exceeding ₹10 lakhs</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Capital Gains Section -->
+        <div class="form-group">
+          <label for="sold_capital_assets">Did you sell any capital assets last year?</label>
+          <select class="form-control" id="sold_capital_assets" name="sold_capital_assets" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="assetTypeSection" style="display: none">
+          <div class="form-group">
+            <label>What type of asset did you sell?</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="real_estate" name="asset_type" value="real_estate">
+              <label class="form-check-label" for="real_estate">Real Estate</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="stocks_mf" name="asset_type" value="stocks_mf">
+              <label class="form-check-label" for="stocks_mf">Stocks and Mutual Funds</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="other_assets" name="asset_type" value="other_assets">
+              <label class="form-check-label" for="other_assets">Other Assets</label>
+            </div>
+          </div>
+
+          <!-- Real Estate Section -->
+          <div id="realEstateSection" style="display: none">
+            <h4>Real Estate Details</h4>
+            <div class="form-group">
+              <label for="re_sold_before_july">Was the Real Estate sold before 23rd July 2024?</label>
+              <select class="form-control" id="re_sold_before_july" name="re_sold_before_july">
+                <option value="">Please select</option>
+                <option value="yes">Yes (Old indexing rules apply)</option>
+                <option value="no">No (New indexing rules apply)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="re_purchase_date">When was the asset purchased?</label>
+              <input type="date" class="form-control" id="re_purchase_date" name="re_purchase_date">
+            </div>
+            <div class="form-group">
+              <label for="re_sale_date">Sale Date:</label>
+              <input type="date" class="form-control" id="re_sale_date" name="re_sale_date">
+            </div>
+            <div class="form-group">
+              <label for="re_purchase_price">Purchase Price (INR):</label>
+              <input type="number" class="form-control" id="re_purchase_price" name="re_purchase_price">
+            </div>
+            <div class="form-group">
+              <label for="re_sale_price">Sale Price (INR):</label>
+              <input type="number" class="form-control" id="re_sale_price" name="re_sale_price">
+            </div>
+            <div class="form-group">
+              <label for="re_expenses">Expenses (Registration, Brokerage, etc.):</label>
+              <input type="number" class="form-control" id="re_expenses" name="re_expenses">
+            </div>
+          </div>
+
+          <!-- Stocks and Mutual Funds Section -->
+          <div id="stocksMFSection" style="display: none">
+            <h4>Stocks and Mutual Funds Details</h4>
+            <div class="form-group">
+              <label for="stock_listed">Was it listed on stock exchange?</label>
+              <select class="form-control" id="stock_listed" name="stock_listed">
+                <option value="">Please select</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="stock_stt_paid">Was Securities Transaction Tax (STT) paid during purchase or sale?</label>
+              <select class="form-control" id="stock_stt_paid" name="stock_stt_paid">
+                <option value="">Please select</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="stock_purchase_date">Purchase Date:</label>
+              <input type="date" class="form-control" id="stock_purchase_date" name="stock_purchase_date">
+            </div>
+            <div class="form-group">
+              <label for="stock_sale_date">Sale Date:</label>
+              <input type="date" class="form-control" id="stock_sale_date" name="stock_sale_date">
+            </div>
+            <div class="form-group">
+              <label for="stock_purchase_price">Purchase Price (INR):</label>
+              <input type="number" class="form-control" id="stock_purchase_price" name="stock_purchase_price">
+            </div>
+            <div class="form-group">
+              <label for="stock_sale_price">Sale Price (INR):</label>
+              <input type="number" class="form-control" id="stock_sale_price" name="stock_sale_price">
+            </div>
+          </div>
+
+          <!-- Other Assets Section -->
+          <div id="otherAssetsSection" style="display: none">
+            <h4>Other Assets Details</h4>
+            <div class="form-group">
+              <label for="other_stt_paid">Was Securities Transaction Tax (STT) paid?</label>
+              <select class="form-control" id="other_stt_paid" name="other_stt_paid">
+                <option value="">Please select</option>
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="other_purchase_date">Purchase Date:</label>
+              <input type="date" class="form-control" id="other_purchase_date" name="other_purchase_date">
+            </div>
+            <div class="form-group">
+              <label for="other_sale_date">Sale Date:</label>
+              <input type="date" class="form-control" id="other_sale_date" name="other_sale_date">
+            </div>
+            <div class="form-group">
+              <label for="other_purchase_price">Purchase Price (INR):</label>
+              <input type="number" class="form-control" id="other_purchase_price" name="other_purchase_price">
+            </div>
+            <div class="form-group">
+              <label for="other_sale_price">Sale Price (INR):</label>
+              <input type="number" class="form-control" id="other_sale_price" name="other_sale_price">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Supporting Documents:</label>
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="supporting_docs" name="supporting_docs" multiple>
+              <label class="custom-file-label" for="supporting_docs">Choose files</label>
+            </div>
+            <small class="form-text text-muted">Please upload relevant purchase deeds, sale deeds, and other supporting documents.</small>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">Calculate & Submit</button>
+      </form>
+    `;
+
+    renderFormInChat(formHtml, "capitalGainsForm", handleCapitalGainsFormSubmit);
+    
+    // Initialize form event listeners after the form is rendered
+    setTimeout(initializeFormEventListeners, 0);
+  }
+
+  function handleCapitalGainsFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    try {
+      const soldAssets = form.sold_capital_assets.value === 'yes';
       
-      // Step 8: Final Report
-      function renderReport() {
-        appendMessage("Thank you! Your details have been recorded.", "bot");
-        appendMessage("Your comprehensive tax report has been generated. This report is designed to help you understand your ITR filing and educate you about your tax liabilities.", "bot");
-        appendMessage("If you'd like to start over, please type 'restart'.", "bot");
-        waitForUserConfirmation(function(response) {
-          if (response.toLowerCase().startsWith("restart")) {
-            formData = {};
-            renderState(states.GREETING);
-          }
-        });
+      if (!soldAssets) {
+        formData.capital_gains = {
+          sold_assets: false,
+          total_capital_gains: 0
+        };
+        renderState(states.CAPITAL_GAINS_SUMMARY);
+        return;
       }
+
+      // Calculate profits for each asset type
+      const profits = {
+        realEstate: calculateRealEstateProfit(form),
+        stocksMF: calculateStocksMFProfit(form),
+        otherAssets: calculateOtherAssetsProfit(form)
+      };
+
+      // Update formData with calculated values
+      formData.capital_gains = {
+        sold_assets: true,
+        real_estate: form.real_estate?.checked ? {
+          sold_before_july_2024: form.re_sold_before_july?.value === 'yes',
+          purchase_date: form.re_purchase_date?.value,
+          sale_date: form.re_sale_date?.value,
+          purchase_price: parseFloat(form.re_purchase_price?.value) || 0,
+          sale_price: parseFloat(form.re_sale_price?.value) || 0,
+          expenses: parseFloat(form.re_expenses?.value) || 0,
+          profit: profits.realEstate
+        } : null,
+        stocks_mf: form.stocks_mf?.checked ? {
+          listed: form.stock_listed?.value === 'yes',
+          stt_paid: form.stock_stt_paid?.value === 'yes',
+          purchase_date: form.stock_purchase_date?.value,
+          sale_date: form.stock_sale_date?.value,
+          purchase_price: parseFloat(form.stock_purchase_price?.value) || 0,
+          sale_price: parseFloat(form.stock_sale_price?.value) || 0,
+          profit: profits.stocksMF
+        } : null,
+        other_assets: form.other_assets?.checked ? {
+          stt_paid: form.other_stt_paid?.value === 'yes',
+          purchase_date: form.other_purchase_date?.value,
+          sale_date: form.other_sale_date?.value,
+          purchase_price: parseFloat(form.other_purchase_price?.value) || 0,
+          sale_price: parseFloat(form.other_sale_price?.value) || 0,
+          profit: profits.otherAssets
+        } : null,
+        total_capital_gains: Object.values(profits).reduce((sum, profit) => sum + profit, 0)
+      };
+
+      renderState(states.CAPITAL_GAINS_SUMMARY);
+    } catch(error) {
+      console.error('Error processing capital gains form:', error);
+      appendMessage("There was an error processing your capital gains information. Please try again.", "bot");
+    }
+  }
+
+  function renderCapitalGainsSummary() {
+    const cg = formData.capital_gains;
+    
+    if (!cg || !cg.sold_assets) {
+      appendMessage("You did not report any capital asset sales for this year.", "bot", true);
+      appendMessage("Let's proceed to generate your tax report.", "bot");
+      renderState(states.REPORT);
+      return;
+    }
+
+    let summaryHtml = `
+      <h4>Capital Gains Summary</h4>
+      <p>Here is a summary of your capital gains:</p>
+    `;
+
+    // Real Estate Summary
+    if (cg.real_estate) {
+      summaryHtml += `
+        <h5>Real Estate</h5>
+        <strong>Purchase Date:</strong> ${new Date(cg.real_estate.purchase_date).toLocaleDateString()}<br>
+        <strong>Sale Date:</strong> ${new Date(cg.real_estate.sale_date).toLocaleDateString()}<br>
+        <strong>Purchase Price:</strong> ₹${cg.real_estate.purchase_price.toLocaleString()}<br>
+        <strong>Sale Price:</strong> ₹${cg.real_estate.sale_price.toLocaleString()}<br>
+        <strong>Expenses:</strong> ₹${cg.real_estate.expenses.toLocaleString()}<br>
+        <strong>Net Profit/Loss:</strong> ₹${cg.real_estate.profit.toLocaleString()}<br><br>
+      `;
+    }
+
+    // Stocks and Mutual Funds Summary
+    if (cg.stocks_mf) {
+      summaryHtml += `
+        <h5>Stocks and Mutual Funds</h5>
+        <strong>Purchase Date:</strong> ${new Date(cg.stocks_mf.purchase_date).toLocaleDateString()}<br>
+        <strong>Sale Date:</strong> ${new Date(cg.stocks_mf.sale_date).toLocaleDateString()}<br>
+        <strong>Purchase Price:</strong> ₹${cg.stocks_mf.purchase_price.toLocaleString()}<br>
+        <strong>Sale Price:</strong> ₹${cg.stocks_mf.sale_price.toLocaleString()}<br>
+        <strong>Net Profit/Loss:</strong> ₹${cg.stocks_mf.profit.toLocaleString()}<br><br>
+      `;
+    }
+
+    // Other Assets Summary
+    if (cg.other_assets) {
+      summaryHtml += `
+        <h5>Other Assets</h5>
+        <strong>Purchase Date:</strong> ${new Date(cg.other_assets.purchase_date).toLocaleDateString()}<br>
+        <strong>Sale Date:</strong> ${new Date(cg.other_assets.sale_date).toLocaleDateString()}<br>
+        <strong>Purchase Price:</strong> ₹${cg.other_assets.purchase_price.toLocaleString()}<br>
+        <strong>Sale Price:</strong> ₹${cg.other_assets.sale_price.toLocaleString()}<br>
+        <strong>Net Profit/Loss:</strong> ₹${cg.other_assets.profit.toLocaleString()}<br><br>
+      `;
+    }
+
+    summaryHtml += `<strong>Total Capital Gains:</strong> ₹${cg.total_capital_gains.toLocaleString()}<br>`;
+
+    appendMessage(summaryHtml, "bot", true);
+    appendMessage("Is this capital gains information correct? (Type 'yes' or 'no')", "bot");
+    
+    waitForUserConfirmation(function(response) {              if (response.toLowerCase().startsWith("y")) {
+        appendMessage("Great! Now let's collect information about your TDS and advance tax payments.", "bot");
+        renderState(states.TDS_ADVANCE_TAX_FORM);
+      } else {
+        appendMessage("Let's update your capital gains details.", "bot");
+        renderState(states.CAPITAL_GAINS_FORM);
+      }
+    });
+  }
+
+  function renderTDSAdvanceTaxForm() {
+    const formHtml = `
+      <h3>TDS & Advance Tax Details</h3>
+      <form id="tdsAdvanceTaxForm" onsubmit="return validateTDSForm(this)">
+        <!-- Form 16 Section -->
+        <div class="form-group">
+          <label>Do you have Form 16?</label>
+          <select class="form-control" id="has_form16" name="has_form16" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="form16Section" style="display:none;">
+          <div class="form-group">
+            <label for="form16_file">Upload Form 16:</label>
+            <input type="file" class="form-control-file" id="form16_file" name="form16_file">
+          </div>
+          <div class="form-group">
+            <label for="tds_amount">TDS Amount as per Form 16:</label>
+            <input type="number" class="form-control" id="tds_amount" name="tds_amount" placeholder="Enter TDS amount">
+          </div>
+        </div>
+
+        <!-- Additional TDS Section -->
+        <div class="form-group">
+          <label>Do you have any additional TDS deductions?</label>
+          <select class="form-control" id="has_additional_tds" name="has_additional_tds" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="additionalTDSSection" style="display:none;">
+          <div class="form-group">
+            <label>Source of Additional TDS:</label>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="tds_fd" name="tds_source" value="fd">
+              <label class="form-check-label" for="tds_fd">Fixed Deposits</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="tds_interest" name="tds_source" value="interest">
+              <label class="form-check-label" for="tds_interest">Interest Income</label>
+            </div>
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="tds_rent" name="tds_source" value="rent">
+              <label class="form-check-label" for="tds_rent">Rental Income</label>
+            </div>
+          </div>
+
+          <div id="tdsFDSection" style="display:none;">
+            <div class="form-group">
+              <label for="tds_fd_amount">TDS on Fixed Deposits:</label>
+              <input type="number" class="form-control" id="tds_fd_amount" name="tds_fd_amount" placeholder="Enter TDS amount">
+            </div>
+          </div>
+
+          <div id="tdsInterestSection" style="display:none;">
+            <div class="form-group">
+              <label for="tds_interest_amount">TDS on Interest Income:</label>
+              <input type="number" class="form-control" id="tds_interest_amount" name="tds_interest_amount" placeholder="Enter TDS amount">
+            </div>
+          </div>
+
+          <div id="tdsRentSection" style="display:none;">
+            <div class="form-group">
+              <label for="tds_rent_amount">TDS on Rental Income:</label>
+              <input type="number" class="form-control" id="tds_rent_amount" name="tds_rent_amount" placeholder="Enter TDS amount">
+            </div>
+          </div>
+        </div>
+
+        <!-- Advance Tax Section -->
+        <div class="form-group">
+          <label>Have you paid any advance tax?</label>
+          <select class="form-control" id="has_advance_tax" name="has_advance_tax" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="advanceTaxSection" style="display:none;">
+          <div class="form-group">
+            <label for="advance_tax_amount">Total Advance Tax Paid:</label>
+            <input type="number" class="form-control" id="advance_tax_amount" name="advance_tax_amount" placeholder="Enter advance tax amount">
+          </div>
+          <div class="form-group">
+            <label for="form26as_file">Upload Form 26AS (Optional):</label>
+            <input type="file" class="form-control-file" id="form26as_file" name="form26as_file">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">Submit</button>
+      </form>
+    `;
+
+    renderFormInChat(formHtml, "tdsAdvanceTaxForm", handleTDSAdvanceTaxFormSubmit);
+
+    // Add event listeners for showing/hiding sections
+    document.getElementById('has_form16')?.addEventListener('change', function(e) {
+        document.getElementById('form16Section').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        if (e.target.value === 'yes') {
+            document.getElementById('tds_amount').required = true;
+        } else {
+            document.getElementById('tds_amount').required = false;
+        }
+    });
+
+    document.getElementById('has_additional_tds')?.addEventListener('change', function(e) {
+        document.getElementById('additionalTDSSection').style.display = e.target.value === 'yes' ? 'block' : 'none';
+    });
+
+    document.querySelectorAll('input[name="tds_source"]').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const sections = {
+                'fd': 'tdsFDSection',
+                'interest': 'tdsInterestSection',
+                'rent': 'tdsRentSection'
+            };
+            const section = document.getElementById(sections[this.value]);
+            if (section) {
+                section.style.display = this.checked ? 'block' : 'none';
+            }
+        });
+    });
+
+    document.getElementById('has_advance_tax')?.addEventListener('change', function(e) {
+        document.getElementById('advanceTaxSection').style.display = e.target.value === 'yes' ? 'block' : 'none';
+        if (e.target.value === 'yes') {
+            document.getElementById('advance_tax_amount').required = true;
+        } else {
+            document.getElementById('advance_tax_amount').required = false;
+        }
+    });
+  }
+
+  function validateTDSForm(form) {
+    const hasForm16 = form.has_form16.value === 'yes';
+    if (hasForm16 && !form.tds_amount.value) {
+        alert('Please enter TDS amount from Form 16');
+        return false;
+    }
+    return true;
+}
+
+  function handleTDSAdvanceTaxFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    const hasForm16 = form.has_form16.value === 'yes';
+    const hasAdditionalTDS = form.has_additional_tds.value === 'yes';
+    const hasAdvanceTax = form.has_advance_tax.value === 'yes';
+
+    // Calculate total tax paid
+    const tdsAmount = hasForm16 ? parseFloat(form.tds_amount.value) || 0 : 0;
+    const additionalTDSAmount = hasAdditionalTDS ? (
+        (parseFloat(form.tds_fd_amount?.value) || 0) +
+        (parseFloat(form.tds_interest_amount?.value) || 0) +
+        (parseFloat(form.tds_rent_amount?.value) || 0)
+    ) : 0;
+    const advanceTaxAmount = hasAdvanceTax ? parseFloat(form.advance_tax_amount?.value) || 0 : 0;
+    
+    const totalTaxPaid = tdsAmount + additionalTDSAmount + advanceTaxAmount;
+
+    formData.tds_advance_tax = {
+        has_form16: hasForm16,
+        form16_file: hasForm16 && form.form16_file.files[0] ? form.form16_file.files[0].name : null,
+        tds_amount: tdsAmount,
+        
+        additional_tds: hasAdditionalTDS ? {
+            sources: Array.from(form.querySelectorAll('input[name="tds_source"]:checked')).map(cb => cb.value),
+            fd_amount: parseFloat(form.tds_fd_amount?.value) || 0,
+            interest_amount: parseFloat(form.tds_interest_amount?.value) || 0,
+            rent_amount: parseFloat(form.tds_rent_amount?.value) || 0,
+            total: additionalTDSAmount
+        } : null,
+        
+        advance_tax: hasAdvanceTax ? {
+            amount: advanceTaxAmount,
+            form26as_file: form.form26as_file.files[0] ? form.form26as_file.files[0].name : null
+        } : null,
+
+        total_tax_paid: totalTaxPaid
+    };
+
+    renderState(states.TDS_ADVANCE_TAX_SUMMARY);
+  }
+  
+  function renderTDSAdvanceTaxSummary() {
+    const tds = formData.tds_advance_tax;
+    
+    if (!tds) {
+        appendMessage("No TDS or advance tax information provided.", "bot", true);
+        renderState(states.DISCLOSURES_FORM);
+        return;
+    }
+
+    let summaryHtml = `
+      <h4>TDS & Advance Tax Summary</h4>
+      
+      ${tds.has_form16 ? `
+      <h5>Form 16 Details</h5>
+      ${tds.form16_file ? `<strong>Form 16:</strong> Uploaded (${tds.form16_file})<br>` : ''}
+      <strong>TDS Amount (Form 16):</strong> ₹${tds.tds_amount.toLocaleString()}<br><br>
+      ` : ''}
+
+      ${tds.additional_tds ? `
+      <h5>Additional TDS Details</h5>
+      ${tds.additional_tds.sources.includes('fd') ? `<strong>TDS on Fixed Deposits:</strong> ₹${tds.additional_tds.fd_amount.toLocaleString()}<br>` : ''}
+      ${tds.additional_tds.sources.includes('interest') ? `<strong>TDS on Interest Income:</strong> ₹${tds.additional_tds.interest_amount.toLocaleString()}<br>` : ''}
+      ${tds.additional_tds.sources.includes('rent') ? `<strong>TDS on Rental Income:</strong> ₹${tds.additional_tds.rent_amount.toLocaleString()}<br>` : ''}
+      <strong>Total Additional TDS:</strong> ₹${tds.additional_tds.total.toLocaleString()}<br><br>
+      ` : ''}
+
+      ${tds.advance_tax ? `
+      <h5>Advance Tax Details</h5>
+      <strong>Total Advance Tax Paid:</strong> ₹${tds.advance_tax.amount.toLocaleString()}<br>
+      ${tds.advance_tax.form26as_file ? `<strong>Form 26AS:</strong> Uploaded (${tds.advance_tax.form26as_file})<br>` : ''}
+      ` : ''}
+    
+      <div class="highlight" style="margin-top: 20px;">
+        <strong>Total Tax Deducted/Paid:</strong> ₹${tds.total_tax_paid.toLocaleString()}
+      </div>
+    `;
+
+    appendMessage(summaryHtml, "bot", true);
+    appendMessage("Is this TDS & advance tax information correct? (Type 'yes' to proceed, or 'no' to update)", "bot");
+    
+    waitForUserConfirmation(function(response) {
+        if (response.toLowerCase().startsWith("y")) {
+            renderState(states.DISCLOSURES_FORM);
+        } else {
+            appendMessage("Let's update your TDS & advance tax information.", "bot");
+            renderState(states.TDS_ADVANCE_TAX_FORM);
+        }
+    });
+  }
+
+  function renderDisclosuresForm() {
+    const formHtml = `
+      <h3>Additional Disclosures & Compliance</h3>
+      <form id="disclosuresForm">
+        <!-- Foreign Assets Section -->
+        <div class="form-group">
+          <label>Do you own any foreign assets or have foreign income?</label>
+          <select class="form-control" id="has_foreign_assets" name="has_foreign_assets" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="foreignAssetsSection" style="display:none;">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="foreign_property" name="foreign_asset_type" value="property">
+            <label class="form-check-label" for="foreign_property">Property</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="foreign_stocks" name="foreign_asset_type" value="stocks">
+            <label class="form-check-label" for="foreign_stocks">Stocks/Securities</label>
+          </div>
+          <div class="form-group">
+            <label for="foreign_income">Total Income from Foreign Sources:</label>
+            <input type="number" class="form-control" id="foreign_income" name="foreign_income" placeholder="Enter amount">
+          </div>
+        </div>
+
+        <!-- Gift Income Section -->
+        <div class="form-group">
+          <label>Have you received any gifts exceeding ₹50,000?</label>
+          <select class="form-control" id="has_gift_income" name="has_gift_income" required>
+            <option value="">Please select</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </select>
+        </div>
+
+        <div id="giftSection" style="display:none;">
+          <div class="form-group">
+            <label for="gift_amount">Total Gift Amount:</label>
+            <input type="number" class="form-control" id="gift_amount" name="gift_amount" placeholder="Enter amount">
+          </div>
+          <div class="form-group">
+            <label for="gift_source">Source of Gift:</label>
+            <select class="form-control" id="gift_source" name="gift_source">
+              <option value="">Select source</option>
+              <option value="relative">Relative</option>
+              <option value="friend">Friend</option>
+              <option value="employer">Employer</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group" id="giftSourceDetailsGroup" style="display:none;">
+            <label for="gift_source_details">Please specify the source:</label>
+            <input type="text" class="form-control" id="gift_source_details" name="gift_source_details" placeholder="Enter source details">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">Submit</button>
+      </form>
+    `;
+
+    renderFormInChat(formHtml, "disclosuresForm", handleDisclosuresFormSubmit);
+
+    // Add event listeners
+    document.getElementById('has_foreign_assets')?.addEventListener('change', function(e) {
+      document.getElementById('foreignAssetsSection').style.display = e.target.value === 'yes' ? 'block' : 'none';
+    });
+
+    document.getElementById('has_gift_income')?.addEventListener('change', function(e) {
+      document.getElementById('giftSection').style.display = e.target.value === 'yes' ? 'block' : 'none';
+    });
+
+    document.getElementById('gift_source')?.addEventListener('change', function(e) {
+      document.getElementById('giftSourceDetailsGroup').style.display = e.target.value === 'other' ? 'block' : 'none';
+    });
+  }
+
+  function handleDisclosuresFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    const hasForeignAssets = form.has_foreign_assets.value === 'yes';
+    const hasGiftIncome = form.has_gift_income.value === 'yes';
+
+    formData.disclosures = {
+      foreign_assets: hasForeignAssets ? {
+        types: Array.from(form.querySelectorAll('input[name="foreign_asset_type"]:checked')).map(cb => cb.value),
+        income: parseFloat(form.foreign_income.value) || 0
+      } : null,
+      
+      gift_income: hasGiftIncome ? {
+        amount: parseFloat(form.gift_amount.value) || 0,
+        source: form.gift_source.value,
+        source_details: form.gift_source.value === 'other' ? form.gift_source_details.value : null
+      } : null
+    };
+
+    renderState(states.DISCLOSURES_SUMMARY);
+  }
+  
+  function renderDisclosuresSummary() {
+    const disclosures = formData.disclosures;
+    
+    if (!disclosures) {
+      appendMessage("No additional disclosures provided.", "bot", true);
+      renderState(states.BANK_DETAILS_FORM);
+      return;
+    }
+
+    let summaryHtml = `
+      <h4>Other Disclosures & Compliance Summary</h4>
+      
+      ${disclosures.foreign_assets ? `
+      <h5>Foreign Assets</h5>
+      <strong>Asset Types:</strong><br>
+      ${disclosures.foreign_assets.types.map(type => `• ${type.charAt(0).toUpperCase() + type.slice(1)}`).join('<br>')}<br>
+      <strong>Income from Foreign Sources:</strong> ₹${disclosures.foreign_assets.income.toLocaleString()}<br>
+      ` : ''}
+
+      ${disclosures.gift_income ? `
+      <h5>Gift Income</h5>
+      <strong>Total Gift Amount:</strong> ₹${disclosures.gift_income.amount.toLocaleString()}<br>
+      <strong>Source:</strong> ${disclosures.gift_income.source}
+      ${disclosures.gift_income.source_details ? `<br><strong>Source Details:</strong> ${disclosures.gift_income.source_details}` : ''}
+      ` : ''}
+    `;
+
+    appendMessage(summaryHtml, "bot", true);
+    appendMessage("Is this disclosure information correct? (Type 'yes' to proceed, or 'no' to update)", "bot");
+    waitForUserConfirmation(function(response) {
+      if (response.toLowerCase().startsWith("y")) {
+        renderState(states.BANK_DETAILS_FORM);
+      } else {
+        appendMessage("Let's update your disclosures.", "bot");
+        renderState(states.DISCLOSURES_FORM);
+      }
+    });
+  }
+
+  function renderBankDetailsForm() {
+    const formHtml = `
+      <h3>Bank Account Details</h3>
+      <form id="bankDetailsForm">
+        <div class="form-group">
+          <label for="bank_name">Bank Name:</label>
+          <input type="text" class="form-control" id="bank_name" name="bank_name" required placeholder="Enter bank name">
+        </div>
+
+        <div class="form-group">
+          <label for="account_type">Account Type:</label>
+          <select class="form-control" id="account_type" name="account_type" required>
+            <option value="">Select account type</option>
+            <option value="savings">Savings</option>
+            <option value="current">Current</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="account_number">Account Number:</label>
+          <input type="text" class="form-control" id="account_number" name="account_number" required 
+            placeholder="Enter account number" pattern="[0-9]+" minlength="9" maxlength="18">
+        </div>
+
+        <div class="form-group">
+          <label for="ifsc_code">IFSC Code:</label>
+          <input type="text" class="form-control" id="ifsc_code" name="ifsc_code" required 
+            placeholder="Enter IFSC code" pattern="[A-Z]{4}[0-9]{7}" maxlength="11">
+          <small class="text-muted">Format: ABCD0123456 (4 letters followed by 7 numbers)</small>
+        </div>
+
+        <div class="form-group">
+          <label for="branch_name">Branch Name:</label>
+          <input type="text" class="form-control" id="branch_name" name="branch_name" required placeholder="Enter branch name">
+        </div>
+
+        <div class="form-check mb-3">
+          <input type="checkbox" class="form-check-input" id="is_primary" name="is_primary">
+          <label class="form-check-label" for="is_primary">This is my primary account for tax refund</label>
+        </div>
+
+        <button type="submit" class="btn btn-success btn-block">Submit</button>
+      </form>
+    `;
+
+    renderFormInChat(formHtml, "bankDetailsForm", handleBankDetailsFormSubmit);
+  }
+
+  function handleBankDetailsFormSubmit(e) {
+    e.preventDefault();
+    const form = e.target;
+    
+    formData.bank_details = {
+      bank_name: form.bank_name.value,
+      account_type: form.account_type.value,
+      account_number: form.account_number.value,
+      ifsc_code: form.ifsc_code.value,
+      branch_name: form.branch_name.value,
+      is_primary: form.is_primary.checked
+    };
+
+    renderState(states.BANK_DETAILS_SUMMARY);
+  }
+
+  function renderBankDetailsSummary() {
+    const bank = formData.bank_details;
+    
+    if (!bank) {
+      appendMessage("No bank details provided.", "bot", true);
+      renderState(states.REPORT);
+      return;
+    }
+
+    let summaryHtml = `
+      <h4>Bank Account Details Summary</h4>
+      <strong>Bank Name:</strong> ${bank.bank_name}<br>
+      <strong>Account Type:</strong> ${bank.account_type}<br>
+      <strong>Account Number:</strong> ${bank.account_number}<br>
+      <strong>IFSC Code:</strong> ${bank.ifsc_code}<br>
+      <strong>Branch:</strong> ${bank.branch_name}<br>
+      <strong>Primary Account:</strong> ${bank.is_primary ? 'Yes' : 'No'}<br>
+    `;
+
+    appendMessage(summaryHtml, "bot", true);
+    appendMessage("Is this bank account information correct? (Type 'yes' to proceed to final report, or 'no' to update)", "bot");
+    
+    waitForUserConfirmation(function(response) {
+      if (response.toLowerCase().startsWith("y")) {
+        appendMessage("Great! Now I'll generate your final tax report.", "bot");
+        renderState(states.REPORT);
+      } else {
+        appendMessage("Let's update your bank account details.", "bot");
+        renderState(states.BANK_DETAILS_FORM);
+      }
+    });
+  }
+
+      function renderReport() {
+  appendMessage("Thank you! All your tax information has been successfully collected.", "bot");
+  appendMessage("Generating your comprehensive tax report...", "bot");
+
+  // Remove any previous progress bar or download button
+  document.querySelectorAll('.progress-container, .tax-report-download-container').forEach(el => el.remove());
+
+  // Show progress indicator with steps
+  const progressDiv = document.createElement('div');
+  progressDiv.className = 'progress-container mb-4';
+  progressDiv.innerHTML = `
+    <style>
+      .progress-container { background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .progress-container .progress { height: 15px; margin-bottom: 15px; background-color: #e3f2fd; }
+      .progress-container .progress-bar { background-color: #1976d2; transition: width 0.5s ease-in-out; }
+      .progress-steps { display: flex; justify-content: space-between; padding: 0 20px; font-size: 0.9em; color: #546e7a; }
+      .progress-step { text-align: center; transition: color 0.3s ease; }
+      .progress-step.active { color: #1976d2; font-weight: 500; }
+    </style>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div class="progress-steps">
+      <span class="progress-step" data-step="1">Summary</span>
+      <span class="progress-step" data-step="2">Income</span>
+      <span class="progress-step" data-step="3">Deductions</span>
+      <span class="progress-step" data-step="4">Assets</span>
+      <span class="progress-step" data-step="5">Report</span>
+    </div>
+  `;
+  function updateProgressSteps(currentStep) {
+    progressDiv.querySelectorAll('.progress-step').forEach((step, idx) => {
+      step.classList.toggle('active', (idx + 1) <= currentStep);
+    });
+  }
+  document.getElementById('chat-box').appendChild(progressDiv);
+
+  setTimeout(() => {
+    progressDiv.querySelector('.progress-bar').style.width = '30%';
+    updateProgressSteps(2);
+
+    // Build reportSummary (same as before)
+    let reportSummary = `<h3>Tax Advisory Report</h3>`;
+
+    // Calculate totals for summary
+    const totalIncome = (formData.income?.gross_salary || 0) +
+      (formData.income?.total_rental_income || 0) +
+      (formData.income?.custom_income_sources?.reduce((sum, inc) => sum + inc.amount, 0) || 0);
+
+    const totalDeductions = formData.deductions ? (
+      Math.min(
+        (formData.deductions.epf || 0) +
+        (formData.deductions.life_insurance || 0) +
+        (formData.deductions.mf || 0) +
+        (formData.deductions.ppf || 0) +
+        (formData.deductions.nsc || 0) +
+        (formData.deductions.home_loan || 0) +
+        (formData.deductions.tuition || 0) +
+        (formData.deductions.pension_80ccc || 0) +
+        (formData.deductions.nps_80ccd1 || 0),
+        150000
+      ) +
+      Math.min((formData.deductions.health_self || 0), 25000) +
+      Math.min((formData.deductions.health_parents || 0), 50000) +
+      (formData.deductions.edu_interest || 0) +
+      Math.min((formData.deductions.nps || 0), 50000) +
+      Math.min((formData.deductions.loan_interest || 0), 200000) +
+      Math.min((formData.deductions.savings_interest || 0), 10000) +
+      Math.min((formData.deductions.fd_interest || 0), 50000)
+    ) : 0;
+
+    const totalCapitalGains = formData.capital_gains?.total_capital_gains || 0;
+    const taxableIncome = Math.max(totalIncome - totalDeductions + totalCapitalGains, 0);
+
+    // Calculate tax liability using the provided function (ensure calculateTaxLiability exists)
+    const estimatedTaxLiability = calculateTaxLiability(taxableIncome);
+    const tdsAndAdvanceTax = (formData.tds_advance_tax?.tds_amount || 0) +
+      (formData.tds_advance_tax?.additional_tds?.total || 0) +
+      (formData.tds_advance_tax?.advance_tax?.amount || 0);
+
+    const remainingTax = estimatedTaxLiability - tdsAndAdvanceTax;
+    const effectiveTaxRate = (taxableIncome > 0 ? ((estimatedTaxLiability / taxableIncome) * 100).toFixed(1) : 0);
+
+    // Generate recommendations
+    const recommendations = [];
+    if (totalDeductions < 150000) {
+      const remainingLimit = 150000 - totalDeductions;
+      recommendations.push(`You can still invest ₹${remainingLimit.toLocaleString()} under Section 80C for additional tax benefits. Consider ELSS Mutual Funds or PPF for long-term wealth creation.`);
+    }
+    if (!formData.deductions?.nps || formData.deductions.nps < 50000) {
+      const npsLimit = 50000 - (formData.deductions?.nps || 0);
+      recommendations.push(`Maximize your NPS contribution (Additional ₹${npsLimit.toLocaleString()} available under 80CCD-1B) for enhanced retirement savings and tax benefits.`);
+    }
+    if (!formData.deductions?.health_self || formData.deductions.health_self < 25000) {
+      recommendations.push('Consider getting comprehensive health insurance coverage for tax benefits under Section 80D and financial security.');
+    }
+    if (formData.income?.rental_income && !formData.income.has_rental) {
+      recommendations.push('Consider declaring your rental income properly to avoid future tax implications. Rental income allows various deductions like municipal taxes and standard deduction.');
+    }
+    if (taxableIncome > 1000000 && !formData.deductions?.loan_interest) {
+      recommendations.push('Consider home loan investment as it provides dual benefits - property appreciation and tax deduction on both principal (80C) and interest (24B).');
+    }
+
+    // Append summary sections
+    reportSummary += `
+            <div class="section">
+              <div class="summary-box">
+                <h4>Income Tax Summary</h4>
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="key-figure">
+                      <strong>Total Gross Income:</strong> ₹${totalIncome.toLocaleString()}
+                    </div>
+                    <div class="key-figure">
+                      <strong>Total Deductions:</strong> ₹${totalDeductions.toLocaleString()}
+                    </div>
+                    <div class="key-figure">
+                      <strong>Capital Gains:</strong> ₹${totalCapitalGains.toLocaleString()}<br>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="key-figure" style="font-size: 1.4em; color: #0d47a1;">
+                      <strong>Taxable Income:</strong> ₹${taxableIncome.toLocaleString()}
+                    </div>
+                    <div class="key-figure">
+                      <strong>Estimated Tax Liability:</strong> ₹${estimatedTaxLiability.toLocaleString()}
+                    </div>
+                    <div class="key-figure">
+                      <strong>Effective Tax Rate:</strong> ${effectiveTaxRate}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <h4 style="margin-top: 30px;">Personalized Tax Planning Recommendations</h4>
+              ${recommendations.length > 0 ? `
+                <div class="recommendation">
+                  <h5>Key Recommendations</h5>
+                  <ul style="margin: 0; padding-left: 20px;">
+                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                  </ul>
+                </div>
+              ` : ''}
+              <div class="recommendation" style="margin-top: 20px;">
+                <h5>Important Reminders</h5>
+                <ul style="margin: 0; padding-left: 20px;">
+                  <li>Maintain proper documentation of all income sources and tax-saving investments</li>
+                  <li>Consider tax implications before making any major financial decisions</li>
+                  <li>Stay updated with the latest tax laws and compliance requirements</li>
+                  ${formData.disclosures?.foreign_assets ? 
+                    `<li>Ensure proper reporting of foreign assets in Schedule FA of your ITR</li>` : ''}
+                  ${formData.capital_gains?.sold_assets ? 
+                    `<li>Keep records of all capital asset transactions for future reference</li>` : ''}
+                </ul>
+              </div>
+            </div>
+    `;
+
+    // Append Personal Info section if available
+    if (formData.personal) {
+      reportSummary += `
+              <div class="section">
+                <h4>Personal Information</h4>
+                <strong>Full Name:</strong> ${formData.personal.full_name}<br>
+                <strong>Date of Birth:</strong> ${formData.personal.dob}<br>
+                <strong>Phone:</strong> ${formData.personal.phone}<br>
+                <strong>Email:</strong> ${formData.personal.email}<br>
+                <strong>Address:</strong> ${formData.personal.address}<br>
+              </div>
+      `;
+    }
+
+    // Append Income Details section if available
+    if (formData.income) {
+      reportSummary += `
+              <div class="section">
+                <h4>Income Details</h4>
+                <div class="highlight">
+                  <strong>Employer Name:</strong> ${formData.income.employer_name}<br>
+                  <strong>TAN:</strong> ${formData.income.tan}<br>
+                </div>
+                <h5>Salary Components</h5>
+                <strong>Gross Salary (Annual):</strong> ₹${formData.income.gross_salary.toLocaleString()}<br>
+                <strong>Base Pay (Annual):</strong> ₹${formData.income.base_pay.toLocaleString()}<br>
+                <strong>Special Allowance:</strong> ₹${formData.income.special_allowance.toLocaleString()}<br>
+                ${formData.income.hra_received > 0 ? `
+                <h5>HRA Details</h5>
+                <strong>HRA Received:</strong> ₹${formData.income.hra_received.toLocaleString()}<br>
+                <strong>Monthly Rent Paid:</strong> ₹${formData.income.monthly_rent.toLocaleString()}<br>
+                <strong>HRA Exemption:</strong> ₹${formData.income.hra_exemption.toLocaleString()}<br>
+                <strong>Taxable HRA:</strong> ₹${(formData.income.hra_received - formData.income.hra_exemption).toLocaleString()}<br>
+                ` : ''}
+                ${formData.income.has_rental ? `
+                <h5>Rental Income</h5>
+                <strong>Gross Rental Income:</strong> ₹${formData.income.rental_income.toLocaleString()}<br>
+                <strong>Municipal Tax & Maintenance:</strong> ₹${formData.income.municipal_tax.toLocaleString()}<br>
+                <strong>Net Rental Income:</strong> ₹${formData.income.net_rental_income.toLocaleString()}<br>
+                <strong>Standard Deduction (30%):</strong> ₹${formData.income.rental_standard_deduction.toLocaleString()}<br>
+                <strong>Total Income from House Property:</strong> ₹${formData.income.total_rental_income.toLocaleString()}<br>
+                ` : ''}
+                ${formData.income.has_other_income ? `
+                <h5>Additional Income Sources</h5>
+                ${formData.income.custom_income_sources.map(income => 
+                  `• ${income.source}: ₹${income.amount.toLocaleString()}`
+                ).join('<br>')}
+                ` : ''}
+              </div>
+      `;
+    }
+
+    // Append Deductions section if available
+    if (formData.deductions) {
+      const section80CTotal = (
+        formData.deductions.epf + formData.deductions.life_insurance + formData.deductions.mf +
+        formData.deductions.ppf + formData.deductions.nsc + formData.deductions.home_loan +
+        formData.deductions.tuition + formData.deductions.pension_80ccc + formData.deductions.nps_80ccd1
+      );
+      reportSummary += `
+              <div class="section">
+                <h4>Deductions & Tax Savings</h4>
+                <h5>Section 80C/80CCC/80CCD(1) Investments</h5>
+                <div class="highlight">
+                  ${formData.deductions.epf ? `• EPF Contribution: ₹${formData.deductions.epf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.life_insurance ? `• Life Insurance Premium: ₹${formData.deductions.life_insurance.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.mf ? `• ELSS - Mutual Funds: ₹${formData.deductions.mf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.ppf ? `• PPF Investment: ₹${formData.deductions.ppf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nsc ? `• NSC Investment: ₹${formData.deductions.nsc.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.home_loan ? `• Home Loan Principal: ₹${formData.deductions.home_loan.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.tuition ? `• Children's Tuition Fees: ₹${formData.deductions.tuition.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.pension_80ccc ? `• Pension Plan Premium: ₹${formData.deductions.pension_80ccc.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nps_80ccd1 ? `• NPS Contribution (80CCD-1): ₹${formData.deductions.nps_80ccd1.toLocaleString()}<br>` : ''}
+                  <strong>Total 80C/CCC/CCD(1) Deductions:</strong> ₹${section80CTotal.toLocaleString()}
+                  ${section80CTotal > 150000 ? '<br><span class="warning">Note: Exceeds maximum limit of ₹1,50,000</span>' : ''}
+                </div>
+                <h5>Health Insurance & Medical (80D)</h5>
+                <div class="highlight">
+                  ${formData.deductions.health_self ? `• Self/Family Premium: ₹${formData.deductions.health_self.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.health_parents ? `• Parents' Premium: ₹${formData.deductions.health_parents.toLocaleString()}<br>` : ''}
+                </div>
+                <h5>Other Deductions</h5>
+                <div class="highlight">
+                  ${formData.deductions.edu_interest ? `• Education Loan Interest (80E): ₹${formData.deductions.edu_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nps ? `• Additional NPS (80CCD-1B): ₹${formData.deductions.nps.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.loan_interest ? `• Housing Loan Interest (24B): ₹${formData.deductions.loan_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.savings_interest ? `• Savings Interest (80TTA): ₹${formData.deductions.savings_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.fd_interest ? `• Senior Citizen FD Interest (80TTB): ₹${formData.deductions.fd_interest.toLocaleString()}<br>` : ''}
+                </div>
+              </div>
+      `;
+    }
+
+    // Append Capital Gains section if available
+    if (formData.capital_gains && formData.capital_gains.sold_assets) {
+      reportSummary += `
+              <div class="section">
+                <h4>Capital Gains</h4>
+                <div class="highlight">
+                  <strong>Total Capital Gains:</strong> ₹${formData.capital_gains.total_capital_gains.toLocaleString()}
+                </div>
+        `;
+        if (formData.capital_gains.real_estate) {
+          reportSummary += `
+                    <h5>Real Estate</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.real_estate.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.real_estate.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.real_estate.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.real_estate.sale_price.toLocaleString()}<br>
+                      <strong>Expenses:</strong> ₹${formData.capital_gains.real_estate.expenses.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.real_estate.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        if (formData.capital_gains.stocks_mf) {
+          reportSummary += `
+                    <h5>Stocks and Mutual Funds</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.stocks_mf.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.stocks_mf.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.stocks_mf.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.stocks_mf.sale_price.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.stocks_mf.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        if (formData.capital_gains.other_assets) {
+          reportSummary += `
+                    <h5>Other Assets</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.other_assets.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.other_assets.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.other_assets.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.other_assets.sale_price.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.other_assets.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        reportSummary += `</div>`;
+    }
+
+    // Append TDS & Advance Tax section if available
+    if (formData.tds_advance_tax) {
+      reportSummary += `
+              <div class="section">
+                <h4>TDS & Advance Tax</h4>
+          `;
+          if (formData.tds_advance_tax.has_form16) {
+            reportSummary += `
+                      <h5>Form 16 Details</h5>
+                      <div class="highlight">
+                        <strong>TDS Amount:</strong> ₹${formData.tds_advance_tax.tds_amount.toLocaleString()}<br>
+                        <strong>Form 16 Status:</strong> Uploaded (${formData.tds_advance_tax.form16_file})
+                      </div>
+            `;
+          }
+          if (formData.tds_advance_tax.additional_tds) {
+            reportSummary += `
+                      <h5>Additional TDS Details</h5>
+                      <div class="highlight">
+                        ${formData.tds_advance_tax.additional_tds.fd_amount ? `• TDS on Fixed Deposits: ₹${formData.tds_advance_tax.additional_tds.fd_amount.toLocaleString()}<br>` : ''}
+                        ${formData.tds_advance_tax.additional_tds.interest_amount ? `• TDS on Interest Income: ₹${formData.tds_advance_tax.additional_tds.interest_amount.toLocaleString()}<br>` : ''}
+                        ${formData.tds_advance_tax.additional_tds.rent_amount ? `• TDS on Rental Income: ₹${formData.tds_advance_tax.additional_tds.rent_amount.toLocaleString()}<br>` : ''}
+                      </div>
+            `;
+          }
+          if (formData.tds_advance_tax.advance_tax) {
+            reportSummary += `
+                      <h5>Advance Tax Details</h5>
+                      <div class="highlight">
+                        <strong>Total Advance Tax Paid:</strong> ₹${formData.tds_advance_tax.advance_tax.amount.toLocaleString()}<br>
+                        ${formData.tds_advance_tax.advance_tax.form26as_file ? `<strong>Form 26AS Status:</strong> Uploaded (${formData.tds_advance_tax.advance_tax.form26as_file})` : ''}
+                      </div>
+            `;
+          }
+          reportSummary += `</div>`;
+        }
+
+        // Append Other Disclosures section if provided
+        if (formData.disclosures) {
+          reportSummary += `
+              <div class="section">
+                <h4>Other Disclosures & Compliance</h4>
+          `;
+          if (formData.disclosures.foreign_assets) {
+            reportSummary += `
+                      <h5>Foreign Assets Declaration</h5>
+                      <div class="highlight">
+                        <strong>Asset Types:</strong><br>
+                        ${formData.disclosures.foreign_assets.types.map(type =>
+                          `• ${type.charAt(0).toUpperCase() + type.slice(1)}`
+                        ).join('<br>')}<br>
+                        <strong>Income from Foreign Sources:</strong> ₹${formData.disclosures.foreign_assets.income.toLocaleString()}
+                      </div>
+            `;
+          }
+          if (formData.disclosures.gift_income) {
+            reportSummary += `
+                      <h5>Gift Income Details</h5>
+                      <div class="highlight">
+                        <strong>Gift Amount:</strong> ₹${formData.disclosures.gift_income.amount.toLocaleString()}<br>
+                        <strong>Source:</strong> ${formData.disclosures.gift_income.source}<br>
+                        ${formData.disclosures.gift_income.source_details ? `<strong>Source Details:</strong> ${formData.disclosures.gift_income.source_details}` : ''}
+                      </div>
+            `;
+          }
+          reportSummary += `</div>`;
+        }
+
+        // Append Bank Account Details section if provided
+        if (formData.bank_details) {
+          reportSummary += `
+              <div class="section">
+                <h4>Bank Account for Tax Refund</h4>
+                <div class="highlight">
+                  <strong>Bank Name:</strong> ${formData.bank_details.bank_name}<br>
+                  <strong>Account Type:</strong> ${formData.bank_details.account_type}<br>
+                  <strong>Account Number:</strong> ${formData.bank_details.account_number}<br>
+                  <strong>IFSC Code:</strong> ${formData.bank_details.ifsc_code}<br>
+                  <strong>Branch:</strong> ${formData.bank_details.branch_name}<br>
+                  <strong>Primary Account:</strong> ${formData.bank_details.is_primary ? 'Yes' : 'No'}
+                </div>
+              </div>
+          `;
+        }
+
+        // Wrap the complete reportSummary with CSS and container markup
+        reportSummary = `
+                <style>
+                  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+                  .tax-report {
+                    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                    max-width: 900px;
+                    margin: 20px auto;
+                    background: #fff;
+                    padding: 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    color: #2c3e50;
+                    line-height: 1.6;
+                  }
+                  .tax-report h3 {
+                    text-align: center;
+                    color: #1565c0;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid #e3f2fd;
+                    font-size: 2.4em;
+                    font-weight: 700;
+                    letter-spacing: -0.5px;
+                  }
+                  .tax-report h4 {
+                    font-size: 1.6em;
+                    color: #1976d2;
+                    border-bottom: 2px solid #e3f2fd;
+                    padding-bottom: 12px;
+                    margin: 30px 0 25px;
+                    font-weight: 600;
+                    letter-spacing: -0.3px;
+                  }
+                  .tax-report h5 {
+                    color: #0d47a1;
+                    margin: 25px 0 15px;
+                    font-size: 1.3em;
+                    font-weight: 500;
+                    letter-spacing: -0.2px;
+                  }
+                  .tax-report .section {
+                    margin-bottom: 40px;
+                    padding: 30px;
+                    background: #fff;
+                    border-radius: 10px;
+                    border: 1px solid #e3f2fd;
+                    box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+                  }
+                  .tax-report .highlight {
+                    background: #f5f9ff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    border-left: 4px solid #1976d2;
+                  }
+                  .tax-report .summary-box {
+                    background: #e3f2fd;
+                    padding: 25px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
+                  }
+                  .tax-report .summary-box h4 {
+                    color: #0d47a1;
+                    border-bottom: none;
+                    margin-top: 0;
+                    margin-bottom: 15px;
+                  }
+                  .tax-report .key-figure {
+                    font-size: 1.2em;
+                    color: #1565c0;
+                    font-weight: 500;
+                    display: block;
+                    margin: 10px 0;
+                  }
+                  .tax-report .recommendation {
+                    background: #e8f5e9;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    border-left: 4px solid #43a047;
+                  }
+                  .tax-report .recommendation h5 {
+                    color: #2e7d32;
+                    margin-top: 0;
+                  }
+                  .tax-report .warning {
+                    color: #d32f2f;
+                    background: #ffebee;
+                    padding: 10px 15px;
+                    border-radius: 6px;
+                    font-size: 0.95em;
+                    margin: 10px 0;
+                    display: inline-block;
+                  }
+                  .tax-report hr {
+                    border: none;
+                    border-top: 2px solid #e3f2fd;
+                    margin: 30px 0;
+                  }
+                  .tax-report strong {
+                    color: #1565c0;
+                    font-weight: 500;
+                  }
+                  .tax-report .footer {
+                    text-align: center;
+                    margin-top: 50px;
+                    padding-top: 30px;
+                    border-top: 3px solid #e3f2fd;
+                    color: #546e7a;
+                    font-size: 0.95em;
+                  }
+                  @media print {
+                    .tax-report {
+                      box-shadow: none;
+                      padding: 20px;
+                      max-width: 100%;
+                      page-break-inside: avoid;
+                    }
+                    .tax-report .section {
+                      page-break-inside: avoid;
+                      box-shadow: none;
+                    }
+                    .tax-report h3, .tax-report h4 {
+                      page-break-after: avoid;
+                    }
+                    .tax-report .highlight, .tax-report .summary-box, 
+                    .tax-report .recommendation {
+                      page-break-inside: avoid;
+                    }
+                    .tax-report .footer {
+                      page-break-before: avoid;
+                    }
+                  }
+                </style>
+                <div class="tax-report">
+                  ${reportSummary}
+                  <div class="footer">
+                    <p>This report is generated automatically by TaxWisary. Please verify all information before submission.</p>
+                    <p>Report generated on: ${new Date().toLocaleString()}</p>
+                    <p>For any questions or clarifications, please consult with a tax professional.</p>
+                  </div>
+                </div>
+        `;
+
+        // Show the complete report in chat
+        appendMessage(reportSummary, "bot", true);
+        progressDiv.querySelector('.progress-bar').style.width = '95%';
+        updateProgressSteps(5);
+
+        // Create a Blob for the report and generate the download link
+        const htmlContent = `
+      <!DOCTYPE html>
+      <html><head><meta charset=\"utf-8\"><title>Tax Report - ${formData.personal?.full_name || 'User'}</title></head><body>${reportSummary}</body></html>
+    `;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const container = document.createElement('div');
+    container.className = 'text-center mt-4 tax-report-download-container';
+
+    const downloadBtn = document.createElement('a');
+    downloadBtn.download = "report repost.html";
+    downloadBtn.href = url;
+    downloadBtn.className = 'btn btn-primary btn-lg';
+    downloadBtn.innerHTML = '📥 Download Tax Report';
+    container.appendChild(downloadBtn);
+    document.getElementById('chat-box').appendChild(container);
+
+    // Clean up the URL object when done
+    downloadBtn.onclick = () => {
+      setTimeout(() => { window.URL.revokeObjectURL(url); }, 100);
+    };
+
+    // Complete progress
+    progressDiv.querySelector('.progress-bar').style.width = '100%';
+    updateProgressSteps(5);
+
+    // Offer to restart
+    appendMessage("Your tax report has been generated successfully! You can download it using the button above.", "bot");
+    appendMessage("Would you like to start over? (Type 'restart' to begin again)", "bot");
+    waitForUserConfirmation(function(response) {
+      if (response.toLowerCase().startsWith("restart")) {
+        formData = {};
+        // Remove report and download button for clean restart
+        document.querySelectorAll('.tax-report-download-container, .progress-container').forEach(el => el.remove());
+        renderState(states.GREETING);
+      }
+    });
+  }, 1000);
+}
       
       // Utility: Wait for user confirmation via chat input.
       function waitForUserConfirmation(callback) {
