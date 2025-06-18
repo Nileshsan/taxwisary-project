@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +24,6 @@
         /* Navbar */
         .navbar {
             background-color: #222;
-            color: white;
             padding: 15px 30px;
             display: flex;
             justify-content: space-between;
@@ -32,6 +32,7 @@
             top: 0;
             width: 100%;
             z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         }
         .nav-links, .auth-links { display: flex; gap: 15px; align-items: center; }
         .nav-links a, .auth-links a {
@@ -149,6 +150,33 @@
             background: #1565c0;
         }
 
+                /* Logo styling */
+        .logo-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 8px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            height: 40px;
+            width: auto;
+            border-radius: 6px;
+        }
+
+        .logo-text {
+            color: #333;
+            margin-left: 10px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
 
 
     </style>
@@ -158,9 +186,11 @@
     <!-- Navbar -->
     <nav class="navbar">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <img src="/static/img/pbs_new_logo.jpg" alt="PBS Logo" style="height:48px; width:auto; border-radius:6px; background:#fff; padding:2px; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+            <img src="{% static 'img/pbs_new_logo.jpg' %}" alt="PBS Logo" style="height:48px; width:auto; border-radius:6px; background:#fff; padding:2px; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
             <a href="{% url 'home' %}" class="site-name">PBS Tax solutions</a>
         </div>
+
+        
         <div class="nav-links">
             <a href="{% url 'users:base' %}">Tax Report</a>
             <a href="{% url 'users:about' %}">About</a>

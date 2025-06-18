@@ -97,3 +97,500 @@ a {
     text-align: center;
     padding: 20px;
 }
+
+.site-name {
+    font-size: 28px; /* Increase size */
+    font-weight: bold; /* Make it bold */
+    color: #222; /* Adjust color if needed */
+}
+
+/* General Reset */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+}
+
+/* Navbar Styling */
+.navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #222;
+    padding: 15px 30px;
+    color: white;
+}
+
+/* Site Name Styling */
+.site-name {
+        font-size: 28px;  /* Make it bigger */
+        font-weight: bold;  /* Make it bold */
+        color: #82df82;  /* Darker color for visibility */
+        text-decoration: none;  /* Remove underline */
+        transition: color 0.3s ease;
+    }
+
+    .site-name:hover {
+        color: #ffcc00;  /* Highlight on hover */
+    }
+/* Navigation Links */
+.nav-links {
+    display: flex;
+    gap: 25px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-weight: 500;
+    padding: 8px 12px;
+    transition: 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: #ffcc00;
+}
+
+/* Services Dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    min-width: 180px;
+    top: 100%;
+    left: 0;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 10px 15px;
+    color: black;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #ffcc00;
+    color: white;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+    animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Auth Links (Right side) */
+.auth-links {
+    display: flex;
+    gap: 15px;
+}
+
+.auth-links a {
+    text-decoration: none;
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    padding: 8px 15px;
+    border: 2px solid white;
+    border-radius: 5px;
+    transition: 0.3s ease;
+}
+
+.auth-links a:hover {
+    background-color: #ffcc00;
+    color: black;
+}
+
+/* Dropdown Menu */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: white;
+    width: 300px; /* Adjust width to fit 2 columns */
+    top: 100%;
+    left: 0;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    padding: 10px;
+}
+
+.dropdown-content a {
+    display: block;
+    padding: 8px 12px;
+    color: black;
+    text-decoration: none;
+    transition: 0.3s ease;
+}
+
+.dropdown-content a:hover {
+    background-color: #ffcc00;
+    color: white;
+}
+
+.dropdown:hover .dropdown-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* Creates 2 equal columns */
+    gap: 10px; /* Adds spacing between items */
+    animation: slideDown 0.3s ease-in-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Chat Container */
+.chat-container {
+    max-width: 800px;
+    width: 40%;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 100px);
+}
+
+.chat-header {
+    background: #35394a;
+    color: white;
+    padding: 0.8rem;
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: #f8f9fa;
+}
+
+.input-container {
+    padding: 0.8rem;
+    background: white;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+}
+
+.input-container input {
+    flex: 1;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.input-container input:focus {
+    outline: none;
+    border-color: #35394a;
+}
+
+.input-container button {
+    padding: 0.6rem 1.2rem;
+    background: #35394a;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.input-container button:hover {
+    background: #42465a;
+}
+
+/* Messages */
+.message {
+    max-width: 85%;
+    margin-bottom: 1rem;
+    padding: 0.8rem 1rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.bot-message {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 0 8px 8px 8px;
+    margin-right: auto;
+}
+
+.user-message {
+    background: #35394a;
+    color: white;
+    border-radius: 8px 0 8px 8px;
+    margin-left: auto;
+}
+
+/* Forms */
+.chat-form {
+    background: white;
+    padding: 1.2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #35394a;
+}
+
+.btn {
+    display: inline-block;
+    font-weight: 500;
+    text-align: center;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.btn-success {
+    background: #35394a;
+    color: white;
+    border: none;
+}
+
+.btn-success:hover {
+    background: #42465a;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+/* Summary Container */
+.summary-container {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    margin: 0.5rem 0;
+}
+
+.summary-container h3 {
+    margin: 0 0 0.8rem 0;
+    color: #35394a;
+    font-size: 1.1rem;
+}
+
+.summary-container ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.summary-container li {
+    padding: 0.4rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-container li:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox Group */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* Form Help Text */
+.form-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 0.25rem;
+}
+
+/* Final Report */
+.final-report {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.final-report h3 {
+    margin: 0 0 1rem 0;
+    color: #35394a;
+    font-size: 1.2rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.final-report h4 {
+    color: #35394a;
+    font-size: 1rem;
+    margin: 1rem 0 0.5rem 0;
+}
+
+.report-section {
+    margin-bottom: 1.5rem;
+}
+
+.report-section p {
+    margin: 0.5rem 0;
+    line-height: 1.4;
+}
+
+.report-section .highlight {
+    font-weight: 600;
+    color: #35394a;
+    font-size: 1.1rem;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+
+.report-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+}
+
+.report-section ul li {
+    padding: 0.25rem 0 0.25rem 1.5rem;
+    position: relative;
+}
+
+.report-section ul li:before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: #35394a;
+}
+
+.mt-3 {
+    margin-top: 1rem;
+}
+
+/* Select Inputs */
+select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23495057' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    background-size: 16px;
+    padding-right: 2.5rem;
+}
+
+/* Hidden Elements */
+[style*="display: none"] {
+    display: none !important;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+    .chat-container {
+        width: 60%;
+    }
+}
+
+@media (max-width: 992px) {
+    .chat-container {
+        width: 70%;
+    }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        width: 90%;
+        margin: 1rem auto;
+    }
+
+    .message {
+        max-width: 85%;
+        font-size: 0.85rem;
+    }
+
+    .input-container {
+        padding: 0.6rem;
+    }
+
+    .input-container input,
+    .input-container button {
+        padding: 0.5rem 0.8rem;
+    }
+
+    form {
+        padding: 1rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+    }
+}
