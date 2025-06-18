@@ -157,9 +157,12 @@
 
     <!-- Navbar -->
     <nav class="navbar">
-        <a href="{% url 'home' %}" class="site-name">PBS TaxWisary</a>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="/static/img/pbs_new_logo.jpg" alt="PBS Logo" style="height:48px; width:auto; border-radius:6px; background:#fff; padding:2px; box-shadow:0 1px 4px rgba(0,0,0,0.07);">
+            <a href="{% url 'home' %}" class="site-name">PBS Tax solutions</a>
+        </div>
         <div class="nav-links">
-            <a href="{% url 'users:base' %}">TAX_AI</a>
+            <a href="{% url 'users:base' %}">Tax Report</a>
             <a href="{% url 'users:about' %}">About</a>
             <a href="{% url 'users:profile' %}">Profile</a>
             <a href="#products">Products</a>
