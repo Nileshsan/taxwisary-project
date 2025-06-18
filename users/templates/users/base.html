@@ -86,7 +86,7 @@
     }
     /* Chat Container */
     .chat-container {
-      width: 40%;
+      width: 60%;
       height: 85vh;
       background-color: #fff;
       display: flex;
@@ -142,27 +142,131 @@
     /* Messages styling */
     .message {
       margin: 10px 0;
-      padding: 12px 16px;
-      border-radius: 25px;
+      padding: 15px 20px;
+      border-radius: 20px;
       max-width: 70%;
       word-wrap: break-word;
       font-size: 0.95rem;
       line-height: 1.4;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
     }
-    .user-message {
+
+    .message.user-message {
       background: linear-gradient(90deg, #007bff, #3399ff);
       color: #fff;
       align-self: flex-end;
+      margin-left: auto;
+      border-bottom-right-radius: 5px;
     }
-    .bot-message {
-      background: #e9ecef;
-      color: #333;
+
+    .message.bot-message {
+      background: #f8f9fa;
+      color: #2c3e50;
       align-self: flex-start;
+      margin-right: auto;
+      border-bottom-left-radius: 5px;
     }
+
+    /* Special styling for bot messages containing forms */
+    .message.bot-message:has(form) {
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 20px auto !important;
+      width: 90% !important;
+      max-width: 900px !important;
+      box-shadow: none !important;
+    }
+
+    /* Form styling inside chat - keep existing styles but add better transitions */
+    .chat-box .message.bot-message form {
+      width: 100% !important;
+      max-width: 800px !important;
+      margin: 0 auto !important;
+      background: #ffffff !important;
+      border-radius: 20px !important;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important;
+      padding: 35px 40px !important;
+      border: 1px solid rgba(0,0,0,0.05) !important;
+      transition: all 0.3s ease !important;
+    }
+
+    .chat-box .message.bot-message form:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+      transform: translateY(-1px) !important;
+    }
+
     /* Hide Temporary Container */
     #temp-container {
       display: none;
     }
+
+    /* Form styling inside chat */
+    .chat-box .message.bot-message form {
+      width: 100% !important;              /* Changed from 200% to 100% */
+      max-width: 800px !important;         /* Set reasonable max-width */
+      margin: 0 auto !important;           /* Center the form */
+      background: #ffffff !important;
+      border-radius: 20px !important;
+      box-shadow: 0 6px 24px rgba(0,0,0,0.1) !important;
+      padding: 35px 40px !important;
+      border: 1px solid rgba(0,0,0,0.05) !important;
+    }
+
+    /* Bot message containing form */
+    .chat-box .message.bot-message:has(form) {
+      background: transparent !important;
+      padding: 0 !important;
+      margin: 20px 0 !important;
+      width: 90% !important;
+      max-width: 900px !important;
+      align-self: center !important;
+    }
+
+    /* Form heading styles */
+    .chat-box .message.bot-message form h3 {
+      text-align: center !important;
+      color: #1976d2 !important;
+      font-size: 1.5rem !important;
+      margin-bottom: 25px !important;
+      padding-bottom: 15px !important;
+      border-bottom: 2px solid #e3f2fd !important;
+    }
+
+    /* Form inputs and groups */
+    .chat-box .message.bot-message form .form-group {
+      margin-bottom: 20px !important;
+    }
+
+    .chat-box .message.bot-message form input,
+    .chat-box .message.bot-message form select,
+    .chat-box .message.bot-message form textarea {
+      width: 100% !important;
+      padding: 12px 16px !important;
+      border: 1px solid #e0e0e0 !important;
+      border-radius: 8px !important;
+      font-size: 1rem !important;
+      transition: all 0.3s ease !important;
+    }
+
+    /* Submit button styling */
+    .chat-box .message.bot-message form button[type="submit"] {
+      background: linear-gradient(90deg, #1976d2, #2196f3) !important;
+      color: white !important;
+      padding: 12px 24px !important;
+      border: none !important;
+      border-radius: 8px !important;
+      font-size: 1rem !important;
+      font-weight: 600 !important;
+      margin-top: 10px !important;
+      transition: transform 0.2s ease !important;
+    }
+
+    .chat-box .message.bot-message form button[type="submit"]:hover {
+      transform: translateY(-1px) !important;
+      box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2) !important;
+    }
+
   </style>
 </head>
 <body>
@@ -1955,6 +2059,7 @@
       }
       input.reportValidity(); // Show validation message immediately
     }
+    window.checkRentAmount = checkRentAmount;
 
       // You can add validation logic here if needed, or leave it empty
   
