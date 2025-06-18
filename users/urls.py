@@ -1,6 +1,7 @@
 from django.urls import path
 from . import views, auth_views, advisory_views, report_views
 from django.contrib.auth.views import LogoutView
+from .views import contact_view
 
 app_name = "users"
 
@@ -33,6 +34,9 @@ urlpatterns = [
     
     # Report Generation
     path("report/", report_views.generate_report, name="generate_report"),
+    
+    # Contact
+    path('contact/', contact_view, name='contact'),
 ]
 
 

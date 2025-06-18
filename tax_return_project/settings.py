@@ -244,3 +244,13 @@ SOCIALACCOUNT_PROVIDERS = {
 SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_CLIENT_ID")
 SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 # SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = os.getenv("GOOGLE_CLIENT_ID")
+
+
+# Email settings for contact form
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'nileshsanyasi02@gmail.com'  # Set your email
+EMAIL_HOST_PASSWORD = 'nosq frhk nfbi xmdh'       # Set your password
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER

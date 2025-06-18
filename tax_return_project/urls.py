@@ -34,6 +34,7 @@ urlpatterns = [
     
     # Include users app URLs with namespace
     path('users/', include('users.urls', namespace='users')),
+    path('', include('users.urls')),
     
     # Other specific views
     path('base/', base_view, name='base'),

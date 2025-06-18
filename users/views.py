@@ -9,6 +9,8 @@ from django.utils.timezone import now
 from django.db import transaction
 from django.template.loader import get_template
 from django.template.loader import render_to_string
+from django.core.mail import send_mail
+from django.conf import settings
 
 
 # External Libraries
@@ -1120,15 +1122,21 @@ def process_deductions_confirmation(session, user_message):
 
 
 
-
-
-
-
-
-
-
-
-
+def contact_view(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        contact = request.POST.get('contact')
+        # You can add more validation here
+        send_mail(
+            f'Contact Form Submission from {name}',
+            f'Email: {email}\nContact: {contact}',
+            settings.DEFAULT_FROM_EMAIL,
+            [settings.DEFAULT_FROM_EMAIL],
+        )
+        messages.success(request, 'Thank you for contacting us!')
+        return redirect('home')
+    return redirect('home')
 
 
 
