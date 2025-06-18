@@ -1,148 +1,112 @@
-      // Step 8: Final Report
-      function renderReport() {
-        appendMessage("Thank you! All your tax information has been successfully collected.", "bot");
-        appendMessage("Generating your comprehensive tax report...", "bot");
-        
-        // Show progress indicator with steps
-        const progressDiv = document.createElement('div');
-        progressDiv.className = 'progress-container mb-4';
-        progressDiv.innerHTML = `
-          <style>
-            .progress-container {
-              background: #f8f9fa;
-              padding: 20px;
-              border-radius: 10px;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            }
-            .progress-container .progress {
-              height: 15px;
-              margin-bottom: 15px;
-              background-color: #e3f2fd;
-            }
-            .progress-container .progress-bar {
-              background-color: #1976d2;
-              transition: width 0.5s ease-in-out;
-            }
-            .progress-steps {
-              display: flex;
-              justify-content: space-between;
-              padding: 0 20px;
-              font-size: 0.9em;
-              color: #546e7a;
-            }
-            .progress-step {
-              text-align: center;
-              transition: color 0.3s ease;
-            }
-            .progress-step.active {
-              color: #1976d2;
-              font-weight: 500;
-            }
-          </style>
-          <div class="progress">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" 
-                 role="progressbar" style="width: 0%" 
-                 aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
-            </div>
-          </div>
-          <div class="progress-steps">
-            <span class="progress-step" data-step="1">Summary</span>
-            <span class="progress-step" data-step="2">Income</span>
-            <span class="progress-step" data-step="3">Deductions</span>
-            <span class="progress-step" data-step="4">Assets</span>
-            <span class="progress-step" data-step="5">Report</span>
-          </div>
-        `;
-        
-        // Function to update progress steps
-        function updateProgressSteps(currentStep) {
-          document.querySelectorAll('.progress-step').forEach((step, index) => {
-            if (index + 1 <= currentStep) {
-              step.classList.add('active');
-            } else {
-              step.classList.remove('active');
-            }
-          });
-        }
-        document.getElementById('chat-box').appendChild(progressDiv);
-        
-        setTimeout(() => {          
-          progressDiv.querySelector('.progress-bar').style.width = '30%';
-            let reportSummary = `<h3>Tax Advisory Report</h3>`;
-          
-          // Calculate totals for summary
-          const totalIncome = (
-            formData.income?.gross_salary || 0
-          ) + (
-            formData.income?.total_rental_income || 0
-          ) + (
-            formData.income?.custom_income_sources?.reduce((sum, inc) => sum + inc.amount, 0) || 0
-          );
+function renderReport() {
+  appendMessage("Thank you! All your tax information has been successfully collected.", "bot");
+  appendMessage("Generating your comprehensive tax report...", "bot");
 
-          const totalDeductions = formData.deductions ? (
-            Math.min(
-              (formData.deductions.epf || 0) + 
-              (formData.deductions.life_insurance || 0) +
-              (formData.deductions.mf || 0) +
-              (formData.deductions.ppf || 0) +
-              (formData.deductions.nsc || 0) +
-              (formData.deductions.home_loan || 0) +
-              (formData.deductions.tuition || 0) +
-              (formData.deductions.pension_80ccc || 0) +
-              (formData.deductions.nps_80ccd1 || 0),
-              150000
-            ) +
-            Math.min((formData.deductions.health_self || 0), 25000) +
-            Math.min((formData.deductions.health_parents || 0), 50000) +
-            (formData.deductions.edu_interest || 0) +
-            Math.min((formData.deductions.nps || 0), 50000) +
-            Math.min((formData.deductions.loan_interest || 0), 200000) +
-            Math.min((formData.deductions.savings_interest || 0), 10000) +
-            Math.min((formData.deductions.fd_interest || 0), 50000)
-          ) : 0;
+  // Remove any previous progress bar or download button
+  document.querySelectorAll('.progress-container, .tax-report-download-container').forEach(el => el.remove());
 
-          const totalCapitalGains = formData.capital_gains?.total_capital_gains || 0;
-          const taxableIncome = Math.max(totalIncome - totalDeductions + totalCapitalGains, 0);
-          
-          // Calculate tax liability
-          const estimatedTaxLiability = calculateTaxLiability(taxableIncome);
-          const tdsAndAdvanceTax = (formData.tds_advance_tax?.tds_amount || 0) + 
-                            (formData.tds_advance_tax?.additional_tds?.total || 0) + 
-                            (formData.tds_advance_tax?.advance_tax?.amount || 0);
-    
-          // Calculate remaining tax payable or refund due
-          const remainingTax = estimatedTaxLiability - tdsAndAdvanceTax;
-          
-          // Add Summary Section at the top
-          // Calculate effective tax rate
-          const effectiveTaxRate = (taxableIncome > 0 ? ((estimatedTaxLiability / taxableIncome) * 100).toFixed(1) : 0);
+  // Show progress indicator with steps
+  const progressDiv = document.createElement('div');
+  progressDiv.className = 'progress-container mb-4';
+  progressDiv.innerHTML = `
+    <style>
+      .progress-container { background: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+      .progress-container .progress { height: 15px; margin-bottom: 15px; background-color: #e3f2fd; }
+      .progress-container .progress-bar { background-color: #1976d2; transition: width 0.5s ease-in-out; }
+      .progress-steps { display: flex; justify-content: space-between; padding: 0 20px; font-size: 0.9em; color: #546e7a; }
+      .progress-step { text-align: center; transition: color 0.3s ease; }
+      .progress-step.active { color: #1976d2; font-weight: 500; }
+    </style>
+    <div class="progress">
+      <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+    </div>
+    <div class="progress-steps">
+      <span class="progress-step" data-step="1">Summary</span>
+      <span class="progress-step" data-step="2">Income</span>
+      <span class="progress-step" data-step="3">Deductions</span>
+      <span class="progress-step" data-step="4">Assets</span>
+      <span class="progress-step" data-step="5">Report</span>
+    </div>
+  `;
 
-          // Generate recommendations based on data analysis
-          const recommendations = [];
-          
-          if (totalDeductions < 150000) {
-            const remainingLimit = 150000 - totalDeductions;
-            recommendations.push(`You can still invest ₹${remainingLimit.toLocaleString()} under Section 80C for additional tax benefits. Consider ELSS Mutual Funds or PPF for long-term wealth creation.`);
-          }
-          
-          if (!formData.deductions?.nps || formData.deductions.nps < 50000) {
-            const npsLimit = 50000 - (formData.deductions?.nps || 0);
-            recommendations.push(`Maximize your NPS contribution (Additional ₹${npsLimit.toLocaleString()} available under 80CCD-1B) for enhanced retirement savings and tax benefits.`);
-          }
-          
-          if (!formData.deductions?.health_self || formData.deductions.health_self < 25000) {
-            recommendations.push('Consider getting comprehensive health insurance coverage for tax benefits under Section 80D and financial security.');
-          }
-          
-          if (formData.income?.rental_income && !formData.income.has_rental) {
-            recommendations.push('Consider declaring your rental income properly to avoid future tax implications. Rental income allows various deductions like municipal taxes and standard deduction.');
-          }
-          
-          if (taxableIncome > 1000000 && !formData.deductions?.loan_interest) {
-            recommendations.push('Consider home loan investment as it provides dual benefits - property appreciation and tax deduction on both principal (80C) and interest (24B).');
-          }
 
-          reportSummary += `
+
+
+  function updateProgressSteps(currentStep) {
+    progressDiv.querySelectorAll('.progress-step').forEach((step, idx) => {
+      step.classList.toggle('active', (idx + 1) <= currentStep);
+    });
+  }
+  document.getElementById('chat-box').appendChild(progressDiv);
+
+  setTimeout(() => {
+    progressDiv.querySelector('.progress-bar').style.width = '30%';
+    updateProgressSteps(2);
+
+    // Build reportSummary (same as before)
+    let reportSummary = `<h3>Tax Advisory Report</h3>`;
+
+    // Calculate totals for summary
+    const totalIncome = (formData.income?.gross_salary || 0) +
+      (formData.income?.total_rental_income || 0) +
+      (formData.income?.custom_income_sources?.reduce((sum, inc) => sum + inc.amount, 0) || 0);
+
+    const totalDeductions = formData.deductions ? (
+      Math.min(
+        (formData.deductions.epf || 0) +
+        (formData.deductions.life_insurance || 0) +
+        (formData.deductions.mf || 0) +
+        (formData.deductions.ppf || 0) +
+        (formData.deductions.nsc || 0) +
+        (formData.deductions.home_loan || 0) +
+        (formData.deductions.tuition || 0) +
+        (formData.deductions.pension_80ccc || 0) +
+        (formData.deductions.nps_80ccd1 || 0),
+        150000
+      ) +
+      Math.min((formData.deductions.health_self || 0), 25000) +
+      Math.min((formData.deductions.health_parents || 0), 50000) +
+      (formData.deductions.edu_interest || 0) +
+      Math.min((formData.deductions.nps || 0), 50000) +
+      Math.min((formData.deductions.loan_interest || 0), 200000) +
+      Math.min((formData.deductions.savings_interest || 0), 10000) +
+      Math.min((formData.deductions.fd_interest || 0), 50000)
+    ) : 0;
+
+    const totalCapitalGains = formData.capital_gains?.total_capital_gains || 0;
+    const taxableIncome = Math.max(totalIncome - totalDeductions + totalCapitalGains, 0);
+
+    // Calculate tax liability using the provided function (ensure calculateTaxLiability exists)
+    const estimatedTaxLiability = calculateTaxLiability(taxableIncome);
+    const tdsAndAdvanceTax = (formData.tds_advance_tax?.tds_amount || 0) +
+      (formData.tds_advance_tax?.additional_tds?.total || 0) +
+      (formData.tds_advance_tax?.advance_tax?.amount || 0);
+
+    const remainingTax = estimatedTaxLiability - tdsAndAdvanceTax;
+    const effectiveTaxRate = (taxableIncome > 0 ? ((estimatedTaxLiability / taxableIncome) * 100).toFixed(1) : 0);
+
+    // Generate recommendations
+    const recommendations = [];
+    if (totalDeductions < 150000) {
+      const remainingLimit = 150000 - totalDeductions;
+      recommendations.push(`You can still invest ₹${remainingLimit.toLocaleString()} under Section 80C for additional tax benefits. Consider ELSS Mutual Funds or PPF for long-term wealth creation.`);
+    }
+    if (!formData.deductions?.nps || formData.deductions.nps < 50000) {
+      const npsLimit = 50000 - (formData.deductions?.nps || 0);
+      recommendations.push(`Maximize your NPS contribution (Additional ₹${npsLimit.toLocaleString()} available under 80CCD-1B) for enhanced retirement savings and tax benefits.`);
+    }
+    if (!formData.deductions?.health_self || formData.deductions.health_self < 25000) {
+      recommendations.push('Consider getting comprehensive health insurance coverage for tax benefits under Section 80D and financial security.');
+    }
+    if (formData.income?.rental_income && !formData.income.has_rental) {
+      recommendations.push('Consider declaring your rental income properly to avoid future tax implications. Rental income allows various deductions like municipal taxes and standard deduction.');
+    }
+    if (taxableIncome > 1000000 && !formData.deductions?.loan_interest) {
+      recommendations.push('Consider home loan investment as it provides dual benefits - property appreciation and tax deduction on both principal (80C) and interest (24B).');
+    }
+
+    // Append summary sections
+    reportSummary += `
             <div class="section">
               <div class="summary-box">
                 <h4>Income Tax Summary</h4>
@@ -181,7 +145,6 @@
                   </ul>
                 </div>
               ` : ''}
-
               <div class="recommendation" style="margin-top: 20px;">
                 <h5>Important Reminders</h5>
                 <ul style="margin: 0; padding-left: 20px;">
@@ -195,451 +158,423 @@
                 </ul>
               </div>
             </div>
-          `;
+    `;
 
-          // Personal Information
-          const p = formData.personal;
-          if (p) {
-            reportSummary += `
+    // Append Personal Info section if available
+    if (formData.personal) {
+      reportSummary += `
               <div class="section">
                 <h4>Personal Information</h4>
-                <strong>Full Name:</strong> ${p.full_name}<br>
-                <strong>Date of Birth:</strong> ${p.dob}<br>
-                <strong>Phone:</strong> ${p.phone}<br>
-                <strong>Email:</strong> ${p.email}<br>
-                <strong>Address:</strong> ${p.address}<br>
+                <strong>Full Name:</strong> ${formData.personal.full_name}<br>
+                <strong>Date of Birth:</strong> ${formData.personal.dob}<br>
+                <strong>Phone:</strong> ${formData.personal.phone}<br>
+                <strong>Email:</strong> ${formData.personal.email}<br>
+                <strong>Address:</strong> ${formData.personal.address}<br>
               </div>
-            `;
-          }
+      `;
+    }
 
-          progressDiv.querySelector('.progress-bar').style.width = '45%';          // Income Details
-          const i = formData.income;
-          if (i) {
-            reportSummary += `
+    // Append Income Details section if available
+    if (formData.income) {
+      reportSummary += `
               <div class="section">
                 <h4>Income Details</h4>
                 <div class="highlight">
-                  <strong>Employer Name:</strong> ${i.employer_name}<br>
-                  <strong>TAN:</strong> ${i.tan}<br>
+                  <strong>Employer Name:</strong> ${formData.income.employer_name}<br>
+                  <strong>TAN:</strong> ${formData.income.tan}<br>
                 </div>
-
                 <h5>Salary Components</h5>
-                <strong>Gross Salary (Annual):</strong> ₹${i.gross_salary.toLocaleString()}<br>
-                <strong>Base Pay (Annual):</strong> ₹${i.base_pay.toLocaleString()}<br>
-                <strong>Special Allowance:</strong> ₹${i.special_allowance.toLocaleString()}<br>
-                ${i.hra_received > 0 ? `
+                <strong>Gross Salary (Annual):</strong> ₹${formData.income.gross_salary.toLocaleString()}<br>
+                <strong>Base Pay (Annual):</strong> ₹${formData.income.base_pay.toLocaleString()}<br>
+                <strong>Special Allowance:</strong> ₹${formData.income.special_allowance.toLocaleString()}<br>
+                ${formData.income.hra_received > 0 ? `
                 <h5>HRA Details</h5>
-                <strong>HRA Received:</strong> ₹${i.hra_received.toLocaleString()}<br>
-                <strong>Monthly Rent Paid:</strong> ₹${i.monthly_rent.toLocaleString()}<br>
-                <strong>HRA Exemption:</strong> ₹${i.hra_exemption.toLocaleString()}<br>
-                <strong>Taxable HRA:</strong> ₹${(i.hra_received - i.hra_exemption).toLocaleString()}<br>
+                <strong>HRA Received:</strong> ₹${formData.income.hra_received.toLocaleString()}<br>
+                <strong>Monthly Rent Paid:</strong> ₹${formData.income.monthly_rent.toLocaleString()}<br>
+                <strong>HRA Exemption:</strong> ₹${formData.income.hra_exemption.toLocaleString()}<br>
+                <strong>Taxable HRA:</strong> ₹${(formData.income.hra_received - formData.income.hra_exemption).toLocaleString()}<br>
                 ` : ''}
-                ${i.has_rental ? `
+                ${formData.income.has_rental ? `
                 <h5>Rental Income</h5>
-                <strong>Gross Rental Income:</strong> ₹${i.rental_income.toLocaleString()}<br>
-                <strong>Municipal Tax & Maintenance:</strong> ₹${i.municipal_tax.toLocaleString()}<br>
-                <strong>Net Rental Income:</strong> ₹${i.net_rental_income.toLocaleString()}<br>
-                <strong>Standard Deduction (30%):</strong> ₹${i.rental_standard_deduction.toLocaleString()}<br>
-                <strong>Total Income from House Property:</strong> ₹${i.total_rental_income.toLocaleString()}<br>
+                <strong>Gross Rental Income:</strong> ₹${formData.income.rental_income.toLocaleString()}<br>
+                <strong>Municipal Tax & Maintenance:</strong> ₹${formData.income.municipal_tax.toLocaleString()}<br>
+                <strong>Net Rental Income:</strong> ₹${formData.income.net_rental_income.toLocaleString()}<br>
+                <strong>Standard Deduction (30%):</strong> ₹${formData.income.rental_standard_deduction.toLocaleString()}<br>
+                <strong>Total Income from House Property:</strong> ₹${formData.income.total_rental_income.toLocaleString()}<br>
                 ` : ''}
-                ${i.has_other_income ? `
+                ${formData.income.has_other_income ? `
                 <h5>Additional Income Sources</h5>
-                ${i.custom_income_sources.map(income => 
+                ${formData.income.custom_income_sources.map(income => 
                   `• ${income.source}: ₹${income.amount.toLocaleString()}`
                 ).join('<br>')}
                 ` : ''}
               </div>
-            `;
-          }
+      `;
+    }
 
-          progressDiv.querySelector('.progress-bar').style.width = '60%';          // Deductions
-          const d = formData.deductions;
-          if (d) {
-            // Calculate section 80C total
-            const section80CTotal = (
-              d.epf + d.life_insurance + d.mf + d.ppf + d.nsc + 
-              d.home_loan + d.tuition + d.pension_80ccc + d.nps_80ccd1
-            );
-            
-            reportSummary += `
+    // Append Deductions section if available
+    if (formData.deductions) {
+      const section80CTotal = (
+        formData.deductions.epf + formData.deductions.life_insurance + formData.deductions.mf +
+        formData.deductions.ppf + formData.deductions.nsc + formData.deductions.home_loan +
+        formData.deductions.tuition + formData.deductions.pension_80ccc + formData.deductions.nps_80ccd1
+      );
+      reportSummary += `
               <div class="section">
                 <h4>Deductions & Tax Savings</h4>
-                
                 <h5>Section 80C/80CCC/80CCD(1) Investments</h5>
                 <div class="highlight">
-                  ${d.epf ? `• EPF Contribution: ₹${d.epf.toLocaleString()}<br>` : ''}
-                  ${d.life_insurance ? `• Life Insurance Premium: ₹${d.life_insurance.toLocaleString()}<br>` : ''}
-                  ${d.mf ? `• ELSS - Mutual Funds: ₹${d.mf.toLocaleString()}<br>` : ''}
-                  ${d.ppf ? `• PPF Investment: ₹${d.ppf.toLocaleString()}<br>` : ''}
-                  ${d.nsc ? `• NSC Investment: ₹${d.nsc.toLocaleString()}<br>` : ''}
-                  ${d.home_loan ? `• Home Loan Principal: ₹${d.home_loan.toLocaleString()}<br>` : ''}
-                  ${d.tuition ? `• Children's Tuition Fees: ₹${d.tuition.toLocaleString()}<br>` : ''}
-                  ${d.pension_80ccc ? `• Pension Plan Premium: ₹${d.pension_80ccc.toLocaleString()}<br>` : ''}
-                  ${d.nps_80ccd1 ? `• NPS Contribution (80CCD-1): ₹${d.nps_80ccd1.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.epf ? `• EPF Contribution: ₹${formData.deductions.epf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.life_insurance ? `• Life Insurance Premium: ₹${formData.deductions.life_insurance.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.mf ? `• ELSS - Mutual Funds: ₹${formData.deductions.mf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.ppf ? `• PPF Investment: ₹${formData.deductions.ppf.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nsc ? `• NSC Investment: ₹${formData.deductions.nsc.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.home_loan ? `• Home Loan Principal: ₹${formData.deductions.home_loan.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.tuition ? `• Children's Tuition Fees: ₹${formData.deductions.tuition.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.pension_80ccc ? `• Pension Plan Premium: ₹${formData.deductions.pension_80ccc.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nps_80ccd1 ? `• NPS Contribution (80CCD-1): ₹${formData.deductions.nps_80ccd1.toLocaleString()}<br>` : ''}
                   <strong>Total 80C/CCC/CCD(1) Deductions:</strong> ₹${section80CTotal.toLocaleString()}
                   ${section80CTotal > 150000 ? '<br><span class="warning">Note: Exceeds maximum limit of ₹1,50,000</span>' : ''}
                 </div>
-
                 <h5>Health Insurance & Medical (80D)</h5>
                 <div class="highlight">
-                  ${d.health_self ? `• Self/Family Premium: ₹${d.health_self.toLocaleString()}<br>` : ''}
-                  ${d.health_parents ? `• Parents' Premium: ₹${d.health_parents.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.health_self ? `• Self/Family Premium: ₹${formData.deductions.health_self.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.health_parents ? `• Parents' Premium: ₹${formData.deductions.health_parents.toLocaleString()}<br>` : ''}
                 </div>
-
                 <h5>Other Deductions</h5>
                 <div class="highlight">
-                  ${d.edu_interest ? `• Education Loan Interest (80E): ₹${d.edu_interest.toLocaleString()}<br>` : ''}
-                  ${d.nps ? `• Additional NPS (80CCD-1B): ₹${d.nps.toLocaleString()}<br>` : ''}
-                  ${d.loan_interest ? `• Housing Loan Interest (24B): ₹${d.loan_interest.toLocaleString()}<br>` : ''}
-                  ${d.savings_interest ? `• Savings Interest (80TTA): ₹${d.savings_interest.toLocaleString()}<br>` : ''}
-                  ${d.fd_interest ? `• Senior Citizen FD Interest (80TTB): ₹${d.fd_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.edu_interest ? `• Education Loan Interest (80E): ₹${formData.deductions.edu_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.nps ? `• Additional NPS (80CCD-1B): ₹${formData.deductions.nps.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.loan_interest ? `• Housing Loan Interest (24B): ₹${formData.deductions.loan_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.savings_interest ? `• Savings Interest (80TTA): ₹${formData.deductions.savings_interest.toLocaleString()}<br>` : ''}
+                  ${formData.deductions.fd_interest ? `• Senior Citizen FD Interest (80TTB): ₹${formData.deductions.fd_interest.toLocaleString()}<br>` : ''}
                 </div>
               </div>
-            `;
-          }
+      `;
+    }
 
-          progressDiv.querySelector('.progress-bar').style.width = '75%';          // Capital Gains
-          const cg = formData.capital_gains;
-          if (cg && cg.sold_assets) {
-            reportSummary += `
+    // Append Capital Gains section if available
+    if (formData.capital_gains && formData.capital_gains.sold_assets) {
+      reportSummary += `
               <div class="section">
                 <h4>Capital Gains</h4>
                 <div class="highlight">
-                  <strong>Total Capital Gains:</strong> ₹${cg.total_capital_gains.toLocaleString()}
+                  <strong>Total Capital Gains:</strong> ₹${formData.capital_gains.total_capital_gains.toLocaleString()}
                 </div>
+        `;
+        if (formData.capital_gains.real_estate) {
+          reportSummary += `
+                    <h5>Real Estate</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.real_estate.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.real_estate.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.real_estate.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.real_estate.sale_price.toLocaleString()}<br>
+                      <strong>Expenses:</strong> ₹${formData.capital_gains.real_estate.expenses.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.real_estate.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        if (formData.capital_gains.stocks_mf) {
+          reportSummary += `
+                    <h5>Stocks and Mutual Funds</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.stocks_mf.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.stocks_mf.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.stocks_mf.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.stocks_mf.sale_price.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.stocks_mf.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        if (formData.capital_gains.other_assets) {
+          reportSummary += `
+                    <h5>Other Assets</h5>
+                    <div class="highlight">
+                      <strong>Purchase Date:</strong> ${new Date(formData.capital_gains.other_assets.purchase_date).toLocaleDateString()}<br>
+                      <strong>Sale Date:</strong> ${new Date(formData.capital_gains.other_assets.sale_date).toLocaleDateString()}<br>
+                      <strong>Purchase Price:</strong> ₹${formData.capital_gains.other_assets.purchase_price.toLocaleString()}<br>
+                      <strong>Sale Price:</strong> ₹${formData.capital_gains.other_assets.sale_price.toLocaleString()}<br>
+                      <strong>Net Profit/Loss:</strong> ₹${formData.capital_gains.other_assets.profit.toLocaleString()}
+                    </div>
+          `;
+        }
+        reportSummary += `</div>`;
+    }
 
-                ${cg.real_estate ? `
-                <h5>Real Estate</h5>
-                <div class="highlight">
-                  <strong>Purchase Date:</strong> ${new Date(cg.real_estate.purchase_date).toLocaleDateString()}<br>
-                  <strong>Sale Date:</strong> ${new Date(cg.real_estate.sale_date).toLocaleDateString()}<br>
-                  <strong>Purchase Price:</strong> ₹${cg.real_estate.purchase_price.toLocaleString()}<br>
-                  <strong>Sale Price:</strong> ₹${cg.real_estate.sale_price.toLocaleString()}<br>
-                  <strong>Expenses:</strong> ₹${cg.real_estate.expenses.toLocaleString()}<br>
-                  <strong>Net Profit/Loss:</strong> ₹${cg.real_estate.profit.toLocaleString()}
-                </div>
-                ` : ''}
-
-                ${cg.stocks_mf ? `
-                <h5>Stocks and Mutual Funds</h5>
-                <div class="highlight">
-                  <strong>Purchase Date:</strong> ${new Date(cg.stocks_mf.purchase_date).toLocaleDateString()}<br>
-                  <strong>Sale Date:</strong> ${new Date(cg.stocks_mf.sale_date).toLocaleDateString()}<br>
-                  <strong>Purchase Price:</strong> ₹${cg.stocks_mf.purchase_price.toLocaleString()}<br>
-                  <strong>Sale Price:</strong> ₹${cg.stocks_mf.sale_price.toLocaleString()}<br>
-                  <strong>Net Profit/Loss:</strong> ₹${cg.stocks_mf.profit.toLocaleString()}
-                </div>
-                ` : ''}
-
-                ${cg.other_assets ? `
-                <h5>Other Assets</h5>
-                <div class="highlight">
-                  <strong>Purchase Date:</strong> ${new Date(cg.other_assets.purchase_date).toLocaleDateString()}<br>
-                  <strong>Sale Date:</strong> ${new Date(cg.other_assets.sale_date).toLocaleDateString()}<br>
-                  <strong>Purchase Price:</strong> ₹${cg.other_assets.purchase_price.toLocaleString()}<br>
-                  <strong>Sale Price:</strong> ₹${cg.other_assets.sale_price.toLocaleString()}<br>
-                  <strong>Net Profit/Loss:</strong> ₹${cg.other_assets.profit.toLocaleString()}
-                </div>
-                ` : ''}
-              </div>
-            `;
-          }          // TDS and Advance Tax
-          const tds = formData.tds_advance_tax;
-          if (tds) {
-            reportSummary += `
+    // Append TDS & Advance Tax section if available
+    if (formData.tds_advance_tax) {
+      reportSummary += `
               <div class="section">
                 <h4>TDS & Advance Tax</h4>
-
-                ${tds.has_form16 ? `
-                <h5>Form 16 Details</h5>
-                <div class="highlight">
-                  <strong>TDS Amount:</strong> ₹${tds.tds_amount.toLocaleString()}<br>
-                  <strong>Form 16 Status:</strong> Uploaded (${tds.form16_file})
-                </div>
-                ` : ''}
-
-                ${tds.additional_tds ? `
-                <h5>Additional TDS Details</h5>
-                <div class="highlight">
-                  ${tds.additional_tds.fd_amount ? `• TDS on Fixed Deposits: ₹${tds.additional_tds.fd_amount.toLocaleString()}<br>` : ''}
-                  ${tds.additional_tds.interest_amount ? `• TDS on Interest Income: ₹${tds.additional_tds.interest_amount.toLocaleString()}<br>` : ''}
-                  ${tds.additional_tds.rent_amount ? `• TDS on Rental Income: ₹${tds.additional_tds.rent_amount.toLocaleString()}<br>` : ''}
-                </div>
-                ` : ''}
-
-                ${tds.advance_tax ? `
-                <h5>Advance Tax Details</h5>
-                <div class="highlight">
-                  <strong>Total Advance Tax Paid:</strong> ₹${tds.advance_tax.amount.toLocaleString()}<br>
-                  ${tds.advance_tax.form26as_file ? `<strong>Form 26AS Status:</strong> Uploaded (${tds.advance_tax.form26as_file})` : ''}
-                </div>
-                ` : ''}
-              </div>
+          `;
+          if (formData.tds_advance_tax.has_form16) {
+            reportSummary += `
+                      <h5>Form 16 Details</h5>
+                      <div class="highlight">
+                        <strong>TDS Amount:</strong> ₹${formData.tds_advance_tax.tds_amount.toLocaleString()}<br>
+                        <strong>Form 16 Status:</strong> Uploaded (${formData.tds_advance_tax.form16_file})
+                      </div>
             `;
           }
-
-          progressDiv.querySelector('.progress-bar').style.width = '85%';          // Other Disclosures
-          const disc = formData.disclosures;
-          if (disc) {
+          if (formData.tds_advance_tax.additional_tds) {
             reportSummary += `
+                      <h5>Additional TDS Details</h5>
+                      <div class="highlight">
+                        ${formData.tds_advance_tax.additional_tds.fd_amount ? `• TDS on Fixed Deposits: ₹${formData.tds_advance_tax.additional_tds.fd_amount.toLocaleString()}<br>` : ''}
+                        ${formData.tds_advance_tax.additional_tds.interest_amount ? `• TDS on Interest Income: ₹${formData.tds_advance_tax.additional_tds.interest_amount.toLocaleString()}<br>` : ''}
+                        ${formData.tds_advance_tax.additional_tds.rent_amount ? `• TDS on Rental Income: ₹${formData.tds_advance_tax.additional_tds.rent_amount.toLocaleString()}<br>` : ''}
+                      </div>
+            `;
+          }
+          if (formData.tds_advance_tax.advance_tax) {
+            reportSummary += `
+                      <h5>Advance Tax Details</h5>
+                      <div class="highlight">
+                        <strong>Total Advance Tax Paid:</strong> ₹${formData.tds_advance_tax.advance_tax.amount.toLocaleString()}<br>
+                        ${formData.tds_advance_tax.advance_tax.form26as_file ? `<strong>Form 26AS Status:</strong> Uploaded (${formData.tds_advance_tax.advance_tax.form26as_file})` : ''}
+                      </div>
+            `;
+          }
+          reportSummary += `</div>`;
+        }
+
+        // Append Other Disclosures section if provided
+        if (formData.disclosures) {
+          reportSummary += `
               <div class="section">
                 <h4>Other Disclosures & Compliance</h4>
-
-                ${disc.foreign_assets ? `
-                <h5>Foreign Assets Declaration</h5>
-                <div class="highlight">
-                  <strong>Asset Types:</strong><br>
-                  ${disc.foreign_assets.types.map(type => 
-                    `• ${type.charAt(0).toUpperCase() + type.slice(1)}`
-                  ).join('<br>')}<br>
-                  <strong>Income from Foreign Sources:</strong> ₹${disc.foreign_assets.income.toLocaleString()}
-                </div>
-                ` : ''}
-
-                ${disc.gift_income ? `
-                <h5>Gift Income Details</h5>
-                <div class="highlight">
-                  <strong>Gift Amount:</strong> ₹${disc.gift_income.amount.toLocaleString()}<br>
-                  <strong>Source:</strong> ${disc.gift_income.source}<br>
-                  ${disc.gift_income.source_details ? `<strong>Source Details:</strong> ${disc.gift_income.source_details}` : ''}
-                </div>
-                ` : ''}
-              </div>
+          `;
+          if (formData.disclosures.foreign_assets) {
+            reportSummary += `
+                      <h5>Foreign Assets Declaration</h5>
+                      <div class="highlight">
+                        <strong>Asset Types:</strong><br>
+                        ${formData.disclosures.foreign_assets.types.map(type =>
+                          `• ${type.charAt(0).toUpperCase() + type.slice(1)}`
+                        ).join('<br>')}<br>
+                        <strong>Income from Foreign Sources:</strong> ₹${formData.disclosures.foreign_assets.income.toLocaleString()}
+                      </div>
             `;
           }
-
-          progressDiv.querySelector('.progress-bar').style.width = '90%';          // Bank Account Details
-          const bank = formData.bank_details;
-          if (bank) {
+          if (formData.disclosures.gift_income) {
             reportSummary += `
+                      <h5>Gift Income Details</h5>
+                      <div class="highlight">
+                        <strong>Gift Amount:</strong> ₹${formData.disclosures.gift_income.amount.toLocaleString()}<br>
+                        <strong>Source:</strong> ${formData.disclosures.gift_income.source}<br>
+                        ${formData.disclosures.gift_income.source_details ? `<strong>Source Details:</strong> ${formData.disclosures.gift_income.source_details}` : ''}
+                      </div>
+            `;
+          }
+          reportSummary += `</div>`;
+        }
+
+        // Append Bank Account Details section if provided
+        if (formData.bank_details) {
+          reportSummary += `
               <div class="section">
                 <h4>Bank Account for Tax Refund</h4>
                 <div class="highlight">
-                  <strong>Bank Name:</strong> ${bank.bank_name}<br>
-                  <strong>Account Type:</strong> ${bank.account_type}<br>
-                  <strong>Account Number:</strong> ${bank.account_number}<br>
-                  <strong>IFSC Code:</strong> ${bank.ifsc_code}<br>
-                  <strong>Branch:</strong> ${bank.branch_name}<br>
-                  <strong>Primary Account:</strong> ${bank.is_primary ? 'Yes' : 'No'}
+                  <strong>Bank Name:</strong> ${formData.bank_details.bank_name}<br>
+                  <strong>Account Type:</strong> ${formData.bank_details.account_type}<br>
+                  <strong>Account Number:</strong> ${formData.bank_details.account_number}<br>
+                  <strong>IFSC Code:</strong> ${formData.bank_details.ifsc_code}<br>
+                  <strong>Branch:</strong> ${formData.bank_details.branch_name}<br>
+                  <strong>Primary Account:</strong> ${formData.bank_details.is_primary ? 'Yes' : 'No'}
                 </div>
               </div>
-            `;
-          }          // Add CSS styles for PDF
-          reportSummary = `
-            <style>
-              @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-              
-              .tax-report {
-                font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
-                max-width: 900px;
-                margin: 20px auto;
-                background: #fff;
-                padding: 40px;
-                border-radius: 12px;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-                color: #2c3e50;
-                line-height: 1.6;
-              }
-
-              .tax-report h3 {
-                text-align: center;
-                color: #1565c0;
-                margin-bottom: 30px;
-                padding-bottom: 20px;
-                border-bottom: 3px solid #e3f2fd;
-                font-size: 2.4em;
-                font-weight: 700;
-                letter-spacing: -0.5px;
-              }
-
-              .tax-report h4 {
-                font-size: 1.6em;
-                color: #1976d2;
-                border-bottom: 2px solid #e3f2fd;
-                padding-bottom: 12px;
-                margin: 30px 0 25px;
-                font-weight: 600;
-                letter-spacing: -0.3px;
-              }
-
-              .tax-report h5 {
-                color: #0d47a1;
-                margin: 25px 0 15px;
-                font-size: 1.3em;
-                font-weight: 500;
-                letter-spacing: -0.2px;
-              }
-
-              .tax-report .section {
-                margin-bottom: 40px;
-                padding: 30px;
-                background: #fff;
-                border-radius: 10px;
-                border: 1px solid #e3f2fd;
-                box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
-              }
-
-              .tax-report .highlight {
-                background: #f5f9ff;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 15px 0;
-                border-left: 4px solid #1976d2;
-              }
-
-              .tax-report .summary-box {
-                background: #e3f2fd;
-                padding: 25px;
-                border-radius: 10px;
-                margin: 20px 0;
-                box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
-              }
-
-              .tax-report .summary-box h4 {
-                color: #0d47a1;
-                border-bottom: none;
-                margin-top: 0;
-                margin-bottom: 15px;
-              }
-
-              .tax-report .key-figure {
-                font-size: 1.2em;
-                color: #1565c0;
-                font-weight: 500;
-                display: block;
-                margin: 10px 0;
-              }
-
-              .tax-report .recommendation {
-                background: #e8f5e9;
-                padding: 20px;
-                border-radius: 8px;
-                margin: 15px 0;
-                border-left: 4px solid #43a047;
-              }
-
-              .tax-report .recommendation h5 {
-                color: #2e7d32;
-                margin-top: 0;
-              }
-
-              .tax-report .warning {
-                color: #d32f2f;
-                background: #ffebee;
-                padding: 10px 15px;
-                border-radius: 6px;
-                font-size: 0.95em;
-                margin: 10px 0;
-                display: inline-block;
-              }
-
-              .tax-report hr {
-                border: none;
-                border-top: 2px solid #e3f2fd;
-                margin: 30px 0;
-              }
-
-              .tax-report strong {
-                color: #1565c0;
-                font-weight: 500;
-              }
-
-              .tax-report .footer {
-                text-align: center;
-                margin-top: 50px;
-                padding-top: 30px;
-                border-top: 3px solid #e3f2fd;
-                color: #546e7a;
-                font-size: 0.95em;
-              }
-
-              @media print {
-                .tax-report {
-                  box-shadow: none;
-                  padding: 20px;
-                  max-width: 100%;
-                  page-break-inside: avoid;
-                }
-
-                .tax-report .section {
-                  page-break-inside: avoid;
-                  box-shadow: none;
-                }
-
-                .tax-report h3, .tax-report h4 {
-                  page-break-after: avoid;
-                }
-
-                .tax-report .highlight, .tax-report .summary-box, 
-                .tax-report .recommendation {
-                  page-break-inside: avoid;
-                }
-
-                .tax-report .footer {
-                  page-break-before: avoid;
-                }
-              }
-            </style>
-            <div class="tax-report">
-              ${reportSummary}
-              <div class="footer">
-                <p>This report is generated automatically by TaxWisary. Please verify all information before submission.</p>
-                <p>Report generated on: ${new Date().toLocaleString()}</p>
-                <p>For any questions or clarifications, please consult with a tax professional.</p>
-              </div>
-            </div>
           `;
+        }
 
-          // Show the report summary in chat
-          appendMessage(reportSummary, "bot", true);
+        // Wrap the complete reportSummary with CSS and container markup
+        reportSummary = `
+                <style>
+                  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+                  .tax-report {
+                    font-family: 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+                    max-width: 900px;
+                    margin: 20px auto;
+                    background: #fff;
+                    padding: 40px;
+                    border-radius: 12px;
+                    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                    color: #2c3e50;
+                    line-height: 1.6;
+                  }
+                  .tax-report h3 {
+                    text-align: center;
+                    color: #1565c0;
+                    margin-bottom: 30px;
+                    padding-bottom: 20px;
+                    border-bottom: 3px solid #e3f2fd;
+                    font-size: 2.4em;
+                    font-weight: 700;
+                    letter-spacing: -0.5px;
+                  }
+                  .tax-report h4 {
+                    font-size: 1.6em;
+                    color: #1976d2;
+                    border-bottom: 2px solid #e3f2fd;
+                    padding-bottom: 12px;
+                    margin: 30px 0 25px;
+                    font-weight: 600;
+                    letter-spacing: -0.3px;
+                  }
+                  .tax-report h5 {
+                    color: #0d47a1;
+                    margin: 25px 0 15px;
+                    font-size: 1.3em;
+                    font-weight: 500;
+                    letter-spacing: -0.2px;
+                  }
+                  .tax-report .section {
+                    margin-bottom: 40px;
+                    padding: 30px;
+                    background: #fff;
+                    border-radius: 10px;
+                    border: 1px solid #e3f2fd;
+                    box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+                  }
+                  .tax-report .highlight {
+                    background: #f5f9ff;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    border-left: 4px solid #1976d2;
+                  }
+                  .tax-report .summary-box {
+                    background: #e3f2fd;
+                    padding: 25px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
+                  }
+                  .tax-report .summary-box h4 {
+                    color: #0d47a1;
+                    border-bottom: none;
+                    margin-top: 0;
+                    margin-bottom: 15px;
+                  }
+                  .tax-report .key-figure {
+                    font-size: 1.2em;
+                    color: #1565c0;
+                    font-weight: 500;
+                    display: block;
+                    margin: 10px 0;
+                  }
+                  .tax-report .recommendation {
+                    background: #e8f5e9;
+                    padding: 20px;
+                    border-radius: 8px;
+                    margin: 15px 0;
+                    border-left: 4px solid #43a047;
+                  }
+                  .tax-report .recommendation h5 {
+                    color: #2e7d32;
+                    margin-top: 0;
+                  }
+                  .tax-report .warning {
+                    color: #d32f2f;
+                    background: #ffebee;
+                    padding: 10px 15px;
+                    border-radius: 6px;
+                    font-size: 0.95em;
+                    margin: 10px 0;
+                    display: inline-block;
+                  }
+                  .tax-report hr {
+                    border: none;
+                    border-top: 2px solid #e3f2fd;
+                    margin: 30px 0;
+                  }
+                  .tax-report strong {
+                    color: #1565c0;
+                    font-weight: 500;
+                  }
+                  .tax-report .footer {
+                    text-align: center;
+                    margin-top: 50px;
+                    padding-top: 30px;
+                    border-top: 3px solid #e3f2fd;
+                    color: #546e7a;
+                    font-size: 0.95em;
+                  }
+                  @media print {
+                    .tax-report {
+                      box-shadow: none;
+                      padding: 20px;
+                      max-width: 100%;
+                      page-break-inside: avoid;
+                    }
+                    .tax-report .section {
+                      page-break-inside: avoid;
+                      box-shadow: none;
+                    }
+                    .tax-report h3, .tax-report h4 {
+                      page-break-after: avoid;
+                    }
+                    .tax-report .highlight, .tax-report .summary-box, 
+                    .tax-report .recommendation {
+                      page-break-inside: avoid;
+                    }
+                    .tax-report .footer {
+                      page-break-before: avoid;
+                    }
+                  }
+                </style>
+                <div class="tax-report">
+                  ${reportSummary}
+                  <div class="footer">
+                    <p>This report is generated automatically by TaxWisary. Please verify all information before submission.</p>
+                    <p>Report generated on: ${new Date().toLocaleString()}</p>
+                    <p>For any questions or clarifications, please consult with a tax professional.</p>
+                  </div>
+                </div>
+        `;
 
-          progressDiv.querySelector('.progress-bar').style.width = '95%';          // Create Blob and download link
-          const htmlContent = `
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <meta charset="utf-8">
-              <title>Tax Report - ${formData.personal?.full_name || 'User'}</title>
-            </head>
-            <body>
-              ${reportSummary}
-            </body>
-            </html>
-          `;
-          
-          const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-          const url = window.URL.createObjectURL(blob);
-          const container = document.createElement('div');
-          container.className = 'text-center mt-4';
-          
-          const downloadBtn = document.createElement('a');
-          downloadBtn.href = url;
-          downloadBtn.download = `Tax_Report_${new Date().toISOString().split('T')[0]}.html`;
-          downloadBtn.className = 'btn btn-primary btn-lg';
-          downloadBtn.innerHTML = '📥 Download Tax Report';
-          
-          container.appendChild(downloadBtn);
-          document.getElementById('chat-box').appendChild(container);
-          
-          // Clean up the URL object when done
-          downloadBtn.onclick = () => {
-            setTimeout(() => {
-              window.URL.revokeObjectURL(url);
-            }, 100);
-          };
+        // Show the complete report in chat
+        appendMessage(reportSummary, "bot", true);
+        progressDiv.querySelector('.progress-bar').style.width = '95%';
+        updateProgressSteps(5);
 
-          // Complete progress
-          progressDiv.querySelector('.progress-bar').style.width = '100%';
-          
-          // Offer to restart
-          appendMessage("Your tax report has been generated successfully! You can download it using the button above.", "bot");
-          appendMessage("Would you like to start over? (Type 'restart' to begin again)", "bot");
-          
-          waitForUserConfirmation(function(response) {
-            if (response.toLowerCase().startsWith("restart")) {
-              formData = {};
-              renderState(states.GREETING);
-            }
-          });
-        }, 1000);
+        // Create a Blob for the report and generate the download link
+        const htmlContent = `
+      <!DOCTYPE html>
+      <html><head><meta charset=\"utf-8\"><title>Tax Report - ${formData.personal?.full_name || 'User'}</title></head><body>${reportSummary}</body></html>
+    `;
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+    const url = window.URL.createObjectURL(blob);
+    const container = document.createElement('div');
+    container.className = 'text-center mt-4 tax-report-download-container';
+
+    const downloadBtn = document.createElement('a');
+    downloadBtn.download = " tax Report";
+    downloadBtn.href = url;
+    downloadBtn.className = 'btn btn-primary btn-lg';
+    downloadBtn.innerHTML = '📥 Download Tax Report';
+    container.appendChild(downloadBtn);
+    document.getElementById('chat-box').appendChild(container);
+
+    // Clean up the URL object when done
+    downloadBtn.onclick = () => {
+      setTimeout(() => { window.URL.revokeObjectURL(url); }, 100);
+    };
+
+    // Complete progress
+    progressDiv.querySelector('.progress-bar').style.width = '100%';
+    updateProgressSteps(5);
+
+    // Offer to restart
+    appendMessage("Your tax report has been generated successfully! You can download it using the button above.", "bot");
+    appendMessage("Would you like to start over? (Type 'restart' to begin again)", "bot");
+    waitForUserConfirmation(function(response) {
+      if (response.toLowerCase().startsWith("restart")) {
+        formData = {};
+        // Remove report and download button for clean restart
+        document.querySelectorAll('.tax-report-download-container, .progress-container').forEach(el => el.remove());
+        renderState(states.GREETING);
       }
+    });
+  }, 1000);
+}
