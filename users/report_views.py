@@ -9,6 +9,7 @@ from datetime import datetime
 import logging
 
 from .models import TempUserData, TempIncomeDetails, TaxReport, UserProfile
+from users.utils import regime_advice_logic
 
 logger = logging.getLogger(__name__)
 
@@ -35,12 +36,28 @@ def generate_report(request, temp_data):
                 # Merge any other data from temp_data
             }
             
-            file_name = f"tax_report_{request.user.username}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+            # Calculate regime recommendation
+            salary = float(temp_data.get('salary_income', 0))
+            hra = float(temp_data.get('house_rent', 0))
+            deductions = float(temp_data.get('deductions_80C', {}).get('total_deduction_A', 0)) + \
+                         float(temp_data.get('deductions_80D', {}).get('total_deduction_B', 0)) + \
+                         float(temp_data.get('deductions_80E', {}).get('deduction_C', 0)) + \
+                         float(temp_data.get('ccd_1B', {}).get('deduction_D', 0))
+            regime_result = regime_advice_logic(salary, hra, deductions)
+            
+            # Debug log for regime_result
+            logger.debug(f"Regime Result: {regime_result}")
+            
+            file_name = f"{temp_data.get('full_name', 'User').split()[0]}_{datetime.now().strftime('%B_%Y')}_Tax_Report.pdf"
             template = get_template('users/report.html')
             context = {
                 'user': request.user,
                 'temp_data': merged_data,
-                'generated_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'generated_date': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'regime_result': regime_result,
+                'salary': salary,
+                'hra': hra,
+                'deductions': deductions,
             }
             html = template.render(context)
             result = BytesIO()

@@ -321,29 +321,107 @@ function initializeChat() {
         }
     }
 
+    // Regime calculation functions (2024-25)
+    function calculateTaxOld(salary, hra, deductions) {
+        let taxable = Math.max(salary - hra - deductions, 0);
+        let tax = 0;
+        if (taxable <= 250000) tax = 0;
+        else if (taxable <= 500000) tax = (taxable - 250000) * 0.05;
+        else if (taxable <= 1000000) tax = 12500 + (taxable - 500000) * 0.2;
+        else tax = 112500 + (taxable - 1000000) * 0.3;
+        if (taxable <= 500000) tax = 0;
+        tax = tax * 1.04;
+        return { tax: Math.round(tax), taxable };
+    }
+    function calculateTaxNew(salary) {
+        let taxable = salary - 50000; // Standard deduction for new regime 2024-25
+        let tax = 0;
+        if (taxable <= 300000) tax = 0;
+        else if (taxable <= 600000) tax = (taxable - 300000) * 0.05;
+        else if (taxable <= 900000) tax = 15000 + (taxable - 600000) * 0.1;
+        else if (taxable <= 1200000) tax = 45000 + (taxable - 900000) * 0.15;
+        else if (taxable <= 1500000) tax = 90000 + (taxable - 1200000) * 0.2;
+        else tax = 150000 + (taxable - 1500000) * 0.3;
+        if (taxable <= 700000) tax = 0; // Rebate up to 7L
+        tax = tax * 1.04;
+        return { tax: Math.round(tax), taxable };
+    }
+    function calculateExcessDeduction(oldTax, newTax, taxableOld) {
+        let diff = Math.abs(oldTax - newTax);
+        let lakhs = taxableOld / 100000.0;
+        if (lakhs > 10) return Math.round(diff / 0.3);
+        if (lakhs > 5) return Math.round(diff / 0.2);
+        return 0;
+    }
+
     function renderFinalReport() {
         const calculateTotalIncome = () => {
             const salary = Number(formData.income.salary);
             const otherIncome = Number(formData.income.other_income);
             return salary + otherIncome;
         };
-
         const calculateTotalDeductions = () => {
             return Number(formData.deductions.section_80c) +
                    Number(formData.deductions.section_80d) +
                    Number(formData.deductions.home_loan_interest) +
                    Number(formData.deductions.education_loan);
         };
-
         const calculateCapitalGains = () => {
             if (formData.capital_gains.has_capital_gains === 'no') return 0;
             return Number(formData.capital_gains.sale_value) - Number(formData.capital_gains.purchase_value);
         };
-
         const totalIncome = calculateTotalIncome();
         const totalDeductions = calculateTotalDeductions();
         const capitalGains = calculateCapitalGains();
         const taxableIncome = totalIncome - totalDeductions + capitalGains;
+
+        // Regime comparison (2024-25)
+        const salary = Number(formData.income.salary);
+        const hra = Number(formData.income.hra) || 0;
+        const deductions = totalDeductions;
+        const oldRegime = calculateTaxOld(salary, hra, deductions);
+        const newRegime = calculateTaxNew(salary);
+        let suggestion = oldRegime.tax < newRegime.tax ? "Old Tax Regime" : (newRegime.tax < oldRegime.tax ? "New Tax Regime" : "Either Regime");
+        let recommended = oldRegime.tax < newRegime.tax ? oldRegime : newRegime;
+        let excessDeduction = calculateExcessDeduction(oldRegime.tax, newRegime.tax, oldRegime.taxable);
+
+        const regimeHtml = `
+        <div class="glass p-6 rounded-2xl shadow-lg my-8">
+          <h3 class="text-2xl font-bold mb-4 text-indigo-700">Tax Regime Recommendation</h3>
+          <div class="mb-4">
+            <b>Recommendation</b>
+            <p>
+              Based on the details you provided, I recommend you opt for the
+              <b>${suggestion}</b>.<br>
+              Under this regime, your estimated taxable income is
+              <b>₹${recommended.taxable.toLocaleString()}</b>
+              and your tax payable would be around
+              <b>₹${recommended.tax.toLocaleString()}</b>.
+            </p>
+            <p>
+              ${excessDeduction > 0
+                ? `Excess Deduction Required for Break Even: <b>₹${excessDeduction.toLocaleString()}</b>`
+                : "No extra tax benefit was calculated from the excess tax component."
+              }
+            </p>
+            <p>
+              This recommendation takes into account the available deductions and exemptions, aiming to minimize your tax burden in a simple manner.
+              Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on changes to tax laws or your specific situation.
+            </p>
+            <p>Hope this helps you plan your finances better!</p>
+          </div>
+          <div class="regime-details mt-4">
+            <b>For your reference:</b><br>
+            Old Tax Regime – Taxable Income: ₹${oldRegime.taxable.toLocaleString()}, Tax: ₹${oldRegime.tax.toLocaleString()}<br>
+            New Tax Regime – Taxable Income: ₹${newRegime.taxable.toLocaleString()}, Tax: ₹${newRegime.tax.toLocaleString()}<br>
+            Excess Deduction Required for Break Even: ₹${excessDeduction.toLocaleString()}
+            <br>
+            <span class="text-muted" style="font-size:0.95em;">
+              *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
+            </span>
+          </div>
+        </div>
+        `;
 
         const reportHtml = `
             <div class="final-report">
@@ -355,6 +433,7 @@ function initializeChat() {
                     <p>Capital Gains: ₹${capitalGains.toLocaleString()}</p>
                     <p class="highlight">Taxable Income: ₹${taxableIncome.toLocaleString()}</p>
                 </div>
+                ${regimeHtml}
                 <div class="report-section">
                     <h4>Tax Saving Recommendations</h4>
                     <ul>
@@ -364,11 +443,9 @@ function initializeChat() {
                         <li>Keep proper documentation of all your investments and expenses claimed as deductions.</li>
                     </ul>
                 </div>
-                
                 <button class="btn btn-primary mt-3" onclick="startNewAssessment()">Start New Assessment</button>
             </div>
         `;
-        
         appendMessage(reportHtml, "bot", true);
     }
 

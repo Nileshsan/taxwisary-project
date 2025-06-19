@@ -5,7 +5,7 @@
     <title>Tax Report - {{ temp_data.full_name }}</title>
     <style>
         :root {
-            --primary-color: #1976d2;
+            --primary-color: #97ec8f;
             --secondary-color: #388e3c;
             --text-color: #2c3e50;
             --light-gray: #7f8c8d;
@@ -149,9 +149,14 @@
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>Tax Report</h1>
-            <p>Generated on: {{ generated_date }}</p>
+        
+
+        <div class="header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+            <img src="{% static 'img/pbs_new_logo.jpg' %}" alt="PBS Logo" style="height: 40px;">
+            <div>
+                <h1 style="margin: 0; font-size: 1.8em;">Tax Report - {{ temp_data.full_name }}</h1>
+                <p style="margin: 0; font-size: 1em; color: #555;">Generated on {{ generated_date }}</p>
+            </div>
         </div>
 
         <div class="section">
@@ -326,6 +331,45 @@
                 <p class="data-line"><span class="label">IFSC Code:</span> <span class="value">{{ temp_data.bank_details.ifsc_code }}</span></p>
                 <p class="data-line"><span class="label">Branch:</span> <span class="value">{{ temp_data.bank_details.branch_name }}</span></p>
             </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Tax Regime Recommendation</div>
+            {% if regime_result %}
+            <div class="sub-section">
+                <b>Recommendation</b>
+                <p>
+                  Based on the details you provided, I recommend you opt for the
+                  <b>{{ regime_result.suggestion }}</b>.<br>
+                  Under this regime, your estimated taxable income is
+                  <b>₹{{ regime_result.recommended.taxable_income|floatformat:0 }}</b>
+                  and your tax payable would be around
+                  <b>₹{{ regime_result.recommended.tax|floatformat:0 }}</b>.
+                </p>
+                <p>
+                  {% if regime_result.excess_deduction > 0 %}
+                    Excess Deduction Required for Break Even: <b>₹{{ regime_result.excess_deduction|floatformat:0 }}</b>
+                  {% else %}
+                    No extra tax benefit was calculated from the excess tax component.
+                  {% endif %}
+                </p>
+                <p>
+                  This recommendation takes into account the available deductions and exemptions, aiming to minimize your tax burden in a simple manner.
+                  Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on changes to tax laws or your specific situation.
+                </p>
+                <p>Hope this helps you plan your finances better!</p>
+            </div>
+            <div class="sub-section">
+                <b>For your reference:</b><br>
+                Old Tax Regime – Taxable Income: ₹{{ regime_result.old_regime.taxable_income|floatformat:0 }}, Tax: ₹{{ regime_result.old_regime.tax|floatformat:0 }}<br>
+                New Tax Regime – Taxable Income: ₹{{ regime_result.new_regime.taxable_income|floatformat:0 }}, Tax: ₹{{ regime_result.new_regime.tax|floatformat:0 }}<br>
+                Excess Deduction Required for Break Even: ₹{{ regime_result.excess_deduction|floatformat:0 }}
+                <br>
+                <span class="text-muted" style="font-size:0.95em;">
+                  *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
+                </span>
+            </div>
+            {% endif %}
         </div>
 
         <div class="footer">

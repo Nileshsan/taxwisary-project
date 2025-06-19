@@ -6,67 +6,115 @@
   <title>Tax Advisory Profile</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
   <style>
     body {
       font-family: 'Inter', sans-serif;
       transition: background 0.3s ease, color 0.3s ease;
     }
-
     [data-theme="light"] body {
-      background: linear-gradient(to bottom right, #f5f7fa, #e6ecf3);
+      background: linear-gradient(120deg, #f5f7fa 0%, #e6ecf3 100%);
       color: #1f2937;
     }
-
     [data-theme="dark"] body {
-      background: linear-gradient(to bottom right, #111827, #1f2937);
+      background: linear-gradient(120deg, #111827 0%, #1f2937 100%);
       color: #f3f4f6;
     }
-
     .glass {
-      background-color: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 8px 32px rgba(80, 80, 180, 0.10), 0 1.5px 8px rgba(130,223,130,0.08);
+      border: 1.5px solid rgba(130,223,130,0.10);
+      transition: box-shadow 0.3s, border 0.3s;
     }
-
     [data-theme="dark"] .glass {
-      background-color: rgba(31, 41, 55, 0.75);
+      background: rgba(31, 41, 55, 0.85);
       color: #f3f4f6;
+      border: 1.5px solid rgba(130,223,130,0.18);
     }
-
-    .toggle-switch {
-      appearance: none;
-      width: 3rem;
-      height: 1.5rem;
-      background: #ccc;
-      border-radius: 9999px;
-      position: relative;
-      cursor: pointer;
-      outline: none;
-      transition: background 0.3s;
+    .glass:hover {
+      box-shadow: 0 12px 40px rgba(80, 80, 180, 0.18), 0 4px 16px rgba(130,223,130,0.16);
+      border: 1.5px solid #82df82;
     }
-
-    .toggle-switch::before {
-      content: "";
-      position: absolute;
-      width: 1.25rem;
-      height: 1.25rem;
-      top: 0.125rem;
-      left: 0.125rem;
-      background: white;
-      border-radius: 9999px;
-      transition: transform 0.3s;
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #388e3c 0%, #1976d2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
     }
-
-    .toggle-switch:checked {
-      background: #4f46e5;
+    .card-action {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
     }
-
-    .toggle-switch:checked::before {
-      transform: translateX(1.5rem);
+    .profile-avatar {
+      box-shadow: 0 4px 24px rgba(56,142,60,0.10), 0 1.5px 8px rgba(130,223,130,0.08);
+      border: 4px solid #fff;
+      background: linear-gradient(135deg, #e0ffe0 0%, #e3f0ff 100%);
+    }
+    .profile-avatar-dark {
+      border: 4px solid #222;
+      background: linear-gradient(135deg, #222 0%, #333 100%);
+    }
+    .profile-completion {
+      background: linear-gradient(90deg, #82df82 0%, #388e3c 100%);
+      box-shadow: 0 2px 8px rgba(130,223,130,0.10);
+    }
+    .btn-gradient {
+      background: linear-gradient(90deg, #388e3c 0%, #1976d2 100%);
+      color: #fff;
+      transition: background 0.3s, box-shadow 0.3s;
+      box-shadow: 0 2px 8px rgba(56,142,60,0.10);
+    }
+    .btn-gradient:hover {
+      background: linear-gradient(90deg, #1976d2 0%, #388e3c 100%);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(56,142,60,0.18);
+    }
+    .icon-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.2rem;
+      height: 2.2rem;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e0ffe0 0%, #e3f0ff 100%);
+      color: #388e3c;
+      font-size: 1.3rem;
+      margin-right: 0.5rem;
+      box-shadow: 0 1px 4px rgba(130,223,130,0.10);
+    }
+    .glass-list li {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .glass-list li:last-child {
+      border-bottom: none;
     }
   </style>
 </head>
 <body class="text-sm">
+  {% if messages %}
+  <div class="container mx-auto mt-4">
+    {% for message in messages %}
+      <div class="alert alert-success alert-dismissible fade show flex items-center gap-2 px-4 py-3 rounded-lg bg-green-100 text-green-800 mb-2" role="alert">
+        <i class="bi bi-check-circle-fill"></i> {{ message }}
+        <button type="button" class="btn-close ml-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
   <!-- Navbar -->
   <header class="bg-white dark:bg-gray-800 shadow-md sticky top-0 z-50 py-4 transition-all">
     <div class="max-w-screen-xl mx-auto px-8 flex justify-between items-center">
@@ -83,8 +131,6 @@
     </div>
   </header>
 
-
-
   <!-- Profile Content -->
   <main class="max-w-screen-xl mx-auto px-8 py-10">
 
@@ -95,7 +141,7 @@
       <div class="w-full xl:w-1/3 text-center">
         <img src="{% if user.profile.profile_pic %}{{ user.profile.profile_pic.url }}{% else %}https://via.placeholder.com/300{% endif %}"
              alt="Profile"
-             class="w-48 h-48 xl:w-64 xl:h-64 rounded-full border-4 border-white object-cover shadow-lg mx-auto" />
+             class="w-48 h-48 xl:w-64 xl:h-64 rounded-full border-4 border-white object-cover shadow-lg mx-auto profile-avatar" />
         <h2 class="mt-6 text-2xl font-bold text-indigo-700 dark:text-indigo-300">
           {% if user.profile.full_name %}{{ user.profile.full_name }}{% else %}{{ user.username }}{% endif %}
         </h2>
@@ -130,6 +176,14 @@
           <a href="{% url 'users:change_password' %}" class="px-5 py-2.5 bg-gray-400 text-white rounded-lg text-sm hover:bg-gray-500 transition">
             Change Password
           </a>
+          {% if latest_report %}
+          <form action="{% url 'users:save_report' %}" method="post" class="inline">
+            {% csrf_token %}
+            <button type="submit" class="px-5 py-2.5 bg-green-600 text-white rounded-lg text-sm hover:bg-green-700 transition">
+              <i class="bi bi-save"></i> Save Latest Report
+            </button>
+          </form>
+          {% endif %}
         </div>
       </div>
     </div>
@@ -138,23 +192,59 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-10">
       <!-- Insights -->
       <div class="glass p-6 rounded-3xl">
-        <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4">Tax Insights</h3>
+        <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 section-title">
+          <i class="bi bi-lightbulb"></i> Tax Insights
+        </h3>
         <ul class="space-y-3 text-sm">
-          <li>🟢 You've claimed ₹50,000 in deductions</li>
-          <li>📈 Income tax trends have changed</li>
-          <li>⚖️ Eligible for 80C, 80D, HRA benefits</li>
+          {% for insight in tax_insights %}
+            <li>{{ insight }}</li>
+          {% empty %}
+            <li>No insights available yet.</li>
+          {% endfor %}
         </ul>
       </div>
-
       <!-- Docs -->
       <div class="glass p-6 rounded-3xl">
-        <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4">Your Documents</h3>
-        <ul class="space-y-3 text-sm">
-          <li>📄 PAN Card.pdf</li>
-          <li>📄 Aadhar Card.pdf</li>
-          <li>📄 Salary Slip March.pdf</li>
+        <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 section-title">
+          <i class="bi bi-file-earmark-text"></i> Your Documents
+        </h3>
+        <ul class="space-y-3 text-sm glass-list">
+          {% for doc in user_docs %}
+            <li>
+              <a href="{{ doc.url }}" class="text-blue-600 hover:underline" target="_blank">📄 {{ doc.name }}</a>
+              <form action="{% url 'users:delete_doc' doc.id %}" method="post" class="inline">
+                {% csrf_token %}
+                <button type="submit" class="ml-2 text-red-500 hover:underline text-xs">Delete</button>
+              </form>
+            </li>
+          {% empty %}
+            <li>No documents uploaded yet.</li>
+          {% endfor %}
         </ul>
+        <form action="{% url 'users:upload_doc' %}" method="post" enctype="multipart/form-data" class="mt-4 flex gap-2">
+          {% csrf_token %}
+          <input type="file" name="document" class="border rounded px-2 py-1" required>
+          <button type="submit" class="px-4 py-1 bg-indigo-500 text-white rounded hover:bg-indigo-600">Upload</button>
+        </form>
       </div>
+    </div>
+
+    <!-- Saved Reports -->
+    <div class="glass p-6 rounded-3xl mt-10">
+      <h3 class="text-lg font-bold text-indigo-600 dark:text-indigo-400 mb-4 section-title">
+        <i class="bi bi-file-earmark-bar-graph"></i> Saved Tax Reports
+      </h3>
+      <ul class="space-y-3 text-sm">
+        {% for report in saved_reports %}
+          <li class="flex items-center gap-2">
+            <span>📄 {{ report.name }}</span>
+            <a href="{{ report.url }}" class="text-green-600 hover:underline" target="_blank">View</a>
+            <a href="{{ report.download_url }}" class="text-blue-600 hover:underline">Download</a>
+          </li>
+        {% empty %}
+          <li>No tax reports saved yet.</li>
+        {% endfor %}
+      </ul>
     </div>
   </main>
 

@@ -92,7 +92,8 @@ a {
 
 /* Support Section */
 .support-section {
-    background-color: #222;
+    display: block; /* Ensure the section is visible */
+    background-color: #da2a2a;
     color: white;
     text-align: center;
     padding: 20px;

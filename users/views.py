@@ -32,6 +32,7 @@ from users.models import TempIncomeDetails, TempUserData, UserProfile, TaxReport
 # Utilities
 from .utils import generate_pdf
 from .chatbot_fsm import ChatFSM
+from users.utils import regime_advice_logic
 
 # Other
 import json
@@ -171,7 +172,32 @@ def index(request):
     return render(request, 'index.html')  # Ensure 'index.html' exists in your templates folder
 
 def base_view(request):
-    return render(request, "users/base.html")  # Ensure the template path is correct
+    salary = hra = deductions = None
+    regime_result = None
+    if request.method == "POST":
+        salary = request.POST.get("salary")
+        hra = request.POST.get("hra")
+        deductions = request.POST.get("deductions")
+        try:
+            salary = float(salary)
+        except (TypeError, ValueError):
+            salary = 0
+        try:
+            hra = float(hra)
+        except (TypeError, ValueError):
+            hra = 0
+        try:
+            deductions = float(deductions)
+        except (TypeError, ValueError):
+            deductions = 0
+        regime_result = regime_advice_logic(salary, hra, deductions)
+    context = {
+        "salary": salary,
+        "hra": hra,
+        "deductions": deductions,
+        "regime_result": regime_result,
+    }
+    return render(request, "users/base.html", context)
 
 
 def users_home(request):

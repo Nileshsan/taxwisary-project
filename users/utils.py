@@ -3,6 +3,7 @@ from io import BytesIO
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import get_template
 from xhtml2pdf import pisa
+import requests
 
 
 def chatbot_view(request):
@@ -48,9 +49,6 @@ def generate_pdf(data):
     except Exception as e:
         return HttpResponse(f"Error generating PDF: {str(e)}", status=500)
 
-
-# utils.py
-import requests
 
 def extract_from_doc(file):
     # Placeholder parsing logic
@@ -100,3 +98,42 @@ def calculate_tax_new(income):
         return 15000 + (income - 600000) * 0.1
     else:
         return 45000 + (income - 900000) * 0.15
+
+def regime_advice_logic(salary, hra, deductions):
+    """
+    Returns a dict with detailed regime comparison and recommendation.
+    salary: total gross salary (float)
+    hra: HRA exemption (float)
+    deductions: total deductions (float)
+    """
+    # Old Regime
+    taxable_old = max(salary - hra - deductions, 0)
+    old_tax = calculate_tax_old(taxable_old)
+    # New Regime (no deductions, no HRA)
+    taxable_new = max(salary, 0)
+    new_tax = calculate_tax_new(taxable_new)
+    # Suggestion
+    if old_tax < new_tax:
+        suggestion = "Old Tax Regime"
+        recommended = {"taxable_income": taxable_old, "tax": old_tax}
+    elif new_tax < old_tax:
+        suggestion = "New Tax Regime"
+        recommended = {"taxable_income": taxable_new, "tax": new_tax}
+    else:
+        suggestion = "Either Regime"
+        recommended = {"taxable_income": taxable_new, "tax": new_tax}
+    # Excess deduction needed for break even
+    tax_diff = abs(old_tax - new_tax)
+    if taxable_old > 1000000:
+        excess = tax_diff / 0.3 if tax_diff else 0
+    elif taxable_old > 500000:
+        excess = tax_diff / 0.2 if tax_diff else 0
+    else:
+        excess = 0
+    return {
+        "suggestion": suggestion,
+        "recommended": recommended,
+        "old_regime": {"taxable_income": taxable_old, "tax": old_tax},
+        "new_regime": {"taxable_income": taxable_new, "tax": new_tax},
+        "excess_deduction": round(excess, 2)
+    }

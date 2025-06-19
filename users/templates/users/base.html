@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -298,7 +299,10 @@
   </div>
   <!-- Chat Container -->
   <div class="chat-container">
-    <div class="chat-header">Tax Advisory AI</div>
+    <div class="chat-header">
+      <img src="{% static 'img/pbs_new_logo.jpg' %}" alt="PBS Logo" style="height: 40px; margin-right: 10px; vertical-align: middle;">
+      Tax Advisory AI 
+    </div>
     <div class="chat-box" id="chat-box"></div>
     <div class="input-container">
       <input type="text" id="user-input" placeholder="Type your message here...">
@@ -1250,9 +1254,6 @@
           <select class="form-control" id="sold_capital_assets" name="sold_capital_assets" required>
             <option value="">Please select</option>
             <option value="yes">Yes</option>
-            <option value="no">No</option>
-          </select>
-        </div>
 
         <div id="assetTypeSection" style="display: none">
           <div class="form-group">
@@ -1532,8 +1533,7 @@
 
     appendMessage(summaryHtml, "bot", true);
     appendMessage("Is this capital gains information correct? (Type 'yes' or 'no')", "bot");
-    
-    waitForUserConfirmation(function(response) {              
+    waitForUserConfirmation(function(response) {
       if (response.toLowerCase().startsWith("y")) {
         appendMessage("Great! Now let's collect information about your TDS and advance tax payments.", "bot");
         renderState(states.TDS_ADVANCE_TAX_FORM);
@@ -2645,8 +2645,32 @@
 
         // Show the complete report in chat
         appendMessage(reportSummary, "bot", true);
-        progressDiv.querySelector('.progress-bar').style.width = '95%';
-        updateProgressSteps(5);
+
+        // --- Regime Advisory Message Block ---
+        if (typeof regime_result === 'object' && regime_result && regime_result.suggestion) {
+          let advisoryMsg = `<div class='regime-card' style='background:#eef6f9;border:1px solid #cdd9e5;padding:1.2em 1.5em;margin:2em 0;border-radius:10px;'>`;
+          advisoryMsg += `<h3>Tax Regime Recommendation</h3>`;
+          advisoryMsg += `<p><strong>Recommendation:</strong> ${regime_result.suggestion}</p>`;
+          advisoryMsg += `<p><strong>Under this regime, your estimated taxable income is</strong> <b>₹${regime_result.recommended.taxable_income.toLocaleString()}</b></p>`;
+          advisoryMsg += `<p><strong>and your tax payable would be around</strong> <b>₹${regime_result.recommended.tax.toLocaleString()}</b></p>`;
+          advisoryMsg += `<p>${regime_result.excess_deduction > 0 ? 
+            `Excess Deduction Required for Break Even: <b>₹${regime_result.excess_deduction.toLocaleString()}</b>` : 
+            `No extra tax benefit was calculated from the excess tax component.`}</p>`;
+          advisoryMsg += `<p>This recommendation takes into account the available deductions and exemptions, aiming to minimize your tax burden in a simple manner.</p>`;
+          advisoryMsg += `<p>Please review your financial goals and consider consulting a tax advisor for personalized advice, as these estimates might vary based on changes to tax laws or your specific situation.</p>`;
+          advisoryMsg += `<p>Hope this helps you plan your finances better!</p>`;
+          advisoryMsg += `<div class="regime-details mt-4"><b>For your reference:</b><br>
+            Old Tax Regime – Taxable Income: ₹${regime_result.old_regime.taxable_income.toLocaleString()}, Tax: ₹${regime_result.old_regime.tax.toLocaleString()}<br>
+            New Tax Regime – Taxable Income: ₹${regime_result.new_regime.taxable_income.toLocaleString()}, Tax: ₹${regime_result.new_regime.tax.toLocaleString()}<br>
+            Excess Deduction Required for Break Even: ₹${regime_result.excess_deduction.toLocaleString()}
+            <br>
+            <span class="text-muted" style="font-size:0.95em;">
+              *Note: These calculations are estimates only and are subject to verification based on current tax laws and your full financial details.
+            </span>
+          </div>`;
+          advisoryMsg += `</div>`;
+          appendMessage(advisoryMsg, "bot", true);
+        }
 
         // Create a Blob for the report and generate the download link
         const htmlContent = `
@@ -2686,7 +2710,7 @@
             renderState(states.GREETING);
           }
         });
-     }, 1000);
+    }, 1000);
     }
       
       // Utility: Wait for user confirmation via chat input.
