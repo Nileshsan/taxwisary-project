@@ -47,6 +47,15 @@ def generate_report(request, temp_data):
             
             # Debug log for regime_result
             logger.debug(f"Regime Result: {regime_result}")
+            print("Regime Result:", regime_result)  # Debug log
+            
+            # Ensure regime_result is valid
+            if not regime_result or 'suggestion' not in regime_result:
+                regime_result = {
+                    'suggestion': 'No recommendation available',
+                    'recommended': {'taxable_income': 0, 'tax': 0},
+                    'excess_deduction': 0,
+                }
             
             file_name = f"{temp_data.get('full_name', 'User').split()[0]}_{datetime.now().strftime('%B_%Y')}_Tax_Report.pdf"
             template = get_template('users/report.html')

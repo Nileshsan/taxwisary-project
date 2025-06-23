@@ -459,6 +459,22 @@ function initializeChat() {
         renderState(states.WELCOME);
     }
 
+    function renderRegimeRecommendation(regimeResult) {
+        console.log("Rendering Regime Recommendation:", regimeResult);  // Debug log
+        const recommendation = `
+            <div class="message bot-message">
+                <h4>Tax Regime Recommendation</h4>
+                <p><strong>Recommendation:</strong> ${regimeResult.suggestion}</p>
+                <p><strong>Taxable Income:</strong> ₹${regimeResult.recommended.taxable_income.toLocaleString()}</p>
+                <p><strong>Tax Payable:</strong> ₹${regimeResult.recommended.tax.toLocaleString()}</p>
+                ${regimeResult.excess_deduction > 0
+                    ? `<p><strong>Excess Deduction Required for Break Even:</strong> ₹${regimeResult.excess_deduction.toLocaleString()}</p>`
+                    : `<p>No extra tax benefit was calculated from the excess tax component.</p>`}
+            </div>
+        `;
+        appendMessage(recommendation, "bot", true);
+    }
+
     // Initialize event listeners
     sendButton.addEventListener("click", handleUserInput);
     inputField.addEventListener("keydown", (e) => {

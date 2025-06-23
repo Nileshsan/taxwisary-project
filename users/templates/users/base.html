@@ -555,17 +555,15 @@
               <input type="number" class="form-control" id="base_pay" name="base_pay" 
                 placeholder="Enter annual base pay" required>
             </div>
-
-            <!-- New salary components -->
             <div class="form-group">
-              <label for="special_allowance">Special Allowance (Annual):</label>
-              <input type="number" class="form-control" id="special_allowance" name="special_allowance" 
-                placeholder="Enter special allowance">
+              <label for="other_allowance">Other Allowance (Annual):</label>
+              <input type="number" class="form-control" id="other_allowance" name="other_allowance" 
+                placeholder="Enter other allowance">
             </div>
             <div class="form-group">
-              <label for="pf_contribution">PF Contribution (Annual):</label>
-              <input type="number" class="form-control" id="pf_contribution" name="pf_contribution" 
-                placeholder="Enter PF contribution">
+              <label for="hra_received">HRA Received (Annual):</label>
+              <input type="number" class="form-control" id="hra_received" name="hra_received" 
+                placeholder="Enter annual HRA received">
             </div>
 
             <!-- LTA Section -->
@@ -753,8 +751,7 @@
           // Get base form values
           const grossSalary = parseFloat(form.gross_salary.value) || 0;
           const basePay = parseFloat(form.base_pay.value) || 0;
-          const specialAllowance = parseFloat(form.special_allowance.value) || 0;
-          const pfContribution = parseFloat(form.pf_contribution.value) || 0;
+          const otherAllowance = parseFloat(form.other_allowance.value) || 0;
           
           // Get LTA details
           const hasLTA = form.has_lta.value === 'yes';
@@ -815,8 +812,8 @@
             tan: form.tan.value,
             gross_salary: grossSalary,
             base_pay: basePay,
-            special_allowance: specialAllowance,
-            pf_contribution: pfContribution,
+            other_allowance: otherAllowance,
+            
             has_lta: hasLTA,
             lta_received: ltaReceived,
             lta_exemption: ltaExemption,
@@ -849,8 +846,11 @@
           <strong>Company TAN:</strong> ${i.tan}<br>
           <strong>Gross Salary (Annual):</strong> ₹${i.gross_salary.toLocaleString()}<br>
           <strong>Base Pay (Annual):</strong> ₹${i.base_pay.toLocaleString()}<br>
-          <strong>Special Allowance:</strong> ₹${i.special_allowance.toLocaleString()}<br>
-          <strong>PF Contribution:</strong> ₹${i.pf_contribution.toLocaleString()}<br>
+          <strong>Other Allowance:</strong> ₹${i.other_allowance.toLocaleString()}<br>
+          
+
+
+
           ${i.has_lta ? `
           <strong>LTA Received:</strong> ₹${i.lta_received.toLocaleString()}<br>
           <strong>LTA Exemption:</strong> ₹${i.lta_exemption.toLocaleString()}<br>
@@ -2296,11 +2296,11 @@
                   <h5>Salary Components</h5>
                   <strong>Gross Salary (Annual):</strong> ₹${formData.income.gross_salary.toLocaleString()}<br>
                   <strong>Base Pay (Annual):</strong> ₹${formData.income.base_pay.toLocaleString()}<br>
-                  <strong>Special Allowance:</strong> ₹${formData.income.special_allowance.toLocaleString()}<br>
+                  <strong>Other Allowance:</strong> ₹${formData.income.other_allowance.toLocaleString()}<br>
                   ${formData.income.hra_received > 0 ? `
                   <h5>HRA Details</h5>
                   <strong>HRA Received:</strong> ₹${formData.income.hra_received.toLocaleString()}<br>
-                  <strong>Monthly Rent Paid:</strong> ₹${formData.income.monthly_rent.toLocaleString()}<br>
+                  <strong>Monthly Rent:</strong> ₹${formData.income.monthly_rent.toLocaleString()}<br>
                   <strong>HRA Exemption:</strong> ₹${formData.income.hra_exemption.toLocaleString()}<br>
                   <strong>Taxable HRA:</strong> ₹${(formData.income.hra_received - formData.income.hra_exemption).toLocaleString()}<br>
                   ` : ''}
